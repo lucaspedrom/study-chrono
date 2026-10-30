@@ -143,6 +143,32 @@ export async function fetchGoogleUserInfo(token: string): Promise<{
 }
 
 /**
+ * Extrai detalhes amigáveis de mensagens de erro da API do Google
+ */
+async function extractGoogleApiErrorMessage(
+  res: Response,
+  action: string,
+): Promise<string> {
+  try {
+    const errorBody = await res.json();
+    if (errorBody?.error?.message) {
+      const msg: string = errorBody.error.message;
+      if (
+        msg.includes("Google Drive API has not been used") ||
+        msg.includes("disabled") ||
+        msg.includes("it is disabled")
+      ) {
+        return "A Google Drive API precisa ser ativada no Google Cloud Console. Vá em 'APIs e Serviços' > 'Biblioteca' > pesquise 'Google Drive API' e clique em 'Ativar'.";
+      }
+      return `${action}: ${msg}`;
+    }
+  } catch {
+    // Falha ao interpretar corpo como JSON
+  }
+  return `${action}: Erro HTTP ${res.status}${res.statusText ? ` (${res.statusText})` : ""}`;
+}
+
+/**
  * Localiza o arquivo de backup no Google Drive
  */
 export async function findDriveBackupFile(token: string): Promise<string | null> {
@@ -160,7 +186,11 @@ export async function findDriveBackupFile(token: string): Promise<string | null>
       setCachedGoogleToken(null);
       throw new Error("Token de acesso expirado. Por favor, reconecte sua conta.");
     }
-    throw new Error(`Erro ao buscar arquivo no Google Drive: ${res.statusText}`);
+    const errorMsg = await extractGoogleApiErrorMessage(
+      res,
+      "Erro ao buscar arquivo no Google Drive",
+    );
+    throw new Error(errorMsg);
   }
 
   const data = await res.json();
@@ -195,7 +225,11 @@ export async function uploadDataToDrive(
     );
 
     if (!updateRes.ok) {
-      throw new Error("Falha ao salvar atualização no Google Drive.");
+      const errorMsg = await extractGoogleApiErrorMessage(
+        updateRes,
+        "Falha ao salvar atualização no Google Drive",
+      );
+      throw new Error(errorMsg);
     }
 
     const result = await updateRes.json();
@@ -238,7 +272,11 @@ export async function uploadDataToDrive(
   );
 
   if (!createRes.ok) {
-    throw new Error("Falha ao criar arquivo de estudo no Google Drive.");
+    const errorMsg = await extractGoogleApiErrorMessage(
+      createRes,
+      "Falha ao criar arquivo de estudo no Google Drive",
+    );
+    throw new Error(errorMsg);
   }
 
   const created = await createRes.json();
@@ -263,7 +301,11 @@ export async function downloadDataFromDrive(
   );
 
   if (!res.ok) {
-    throw new Error("Não foi possível carregar o arquivo do Google Drive.");
+    const errorMsg = await extractGoogleApiErrorMessage(
+      res,
+      "Não foi possível carregar o arquivo do Google Drive",
+    );
+    throw new Error(errorMsg);
   }
 
   return await res.json();

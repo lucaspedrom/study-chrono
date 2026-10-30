@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Zap,
   RefreshCw,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import type { UserProfile, StorageMode } from "../types/session";
 import { useModalFocusTrap } from "../utils/useModalFocusTrap";
@@ -426,6 +428,39 @@ export function UserProfileModal({
           </ul>
         </section>
       )}
+
+      {/* Seção Legal & Privacidade */}
+      <section className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50/60 p-4 dark:border-neutral-800 dark:bg-neutral-950/40">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-neutral-700 dark:text-neutral-300" />
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+            Termos & Privacidade
+          </span>
+        </div>
+        <p className="font-sans text-xs text-neutral-600 dark:text-neutral-400">
+          Seus dados de estudo pertencem exclusivamente a você. Consulte nossas diretrizes de privacidade e termos de uso:
+        </p>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <a
+            href="/privacy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Política de Privacidade
+          </a>
+          <a
+            href="/terms.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Termos de Serviço
+          </a>
+        </div>
+      </section>
     </div>
   );
 
