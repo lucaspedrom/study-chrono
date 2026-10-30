@@ -12,6 +12,7 @@ import {
   type UserProfileModalSection,
 } from "./components/UserProfileModal";
 import { UserMenuPopover } from "./components/UserMenuPopover";
+import { DEFAULT_GOOGLE_CLIENT_ID } from "./config/googleAuth";
 import { loginWithGoogleData } from "./services/authService";
 import {
   requestGoogleOAuthToken,
@@ -533,10 +534,10 @@ function App() {
 
   // Funções de Gestão de Usuário e Armazenamento
   const handleLoginGoogle = async () => {
-    const clientId = googleClientId.trim();
+    const clientId = (DEFAULT_GOOGLE_CLIENT_ID || googleClientId || "").trim();
     if (!clientId) {
       throw new Error(
-        "Por favor, informe seu Google OAuth Client ID na aba Armazenamento antes de conectar.",
+        "A autenticação Google está em processo de ativação no servidor. Enquanto isso, aproveite o Modo Visitante com armazenamento local!",
       );
     }
     const token = await requestGoogleOAuthToken(clientId);
@@ -566,10 +567,10 @@ function App() {
       setIsSyncingDrive(true);
       let token = getCachedGoogleToken();
       if (!token) {
-        const clientId = googleClientId.trim();
+        const clientId = (DEFAULT_GOOGLE_CLIENT_ID || googleClientId || "").trim();
         if (!clientId) {
           throw new Error(
-            "Configure seu Google OAuth Client ID na aba Armazenamento para autorizar o acesso ao Drive.",
+            "Conecte sua conta Google no perfil para habilitar a sincronização em nuvem.",
           );
         }
         token = await requestGoogleOAuthToken(clientId);

@@ -7,7 +7,6 @@ import {
   Download,
   Upload,
   LogOut,
-  Key,
   CheckCircle2,
   AlertCircle,
   Info,
@@ -30,7 +29,7 @@ export interface UserProfileModalProps {
   activeSection?: UserProfileModalSection;
   user: UserProfile | null;
   storageMode: StorageMode;
-  googleClientId: string;
+  googleClientId?: string;
   isSyncingDrive?: boolean;
   driveLastSyncedAt?: string | null;
   onClose: () => void;
@@ -39,7 +38,7 @@ export interface UserProfileModalProps {
   onSyncDriveNow?: () => Promise<void>;
   onLogout: () => void;
   onUpdateStorageMode: (mode: StorageMode) => void;
-  onUpdateGoogleClientId: (clientId: string) => void;
+  onUpdateGoogleClientId?: (clientId: string) => void;
   onExportBackup: () => void;
   onImportBackup: (file: File) => Promise<boolean>;
 }
@@ -49,7 +48,6 @@ export function UserProfileModal({
   activeSection = "all",
   user,
   storageMode,
-  googleClientId,
   isSyncingDrive = false,
   driveLastSyncedAt = null,
   onClose,
@@ -58,7 +56,6 @@ export function UserProfileModal({
   onSyncDriveNow,
   onLogout,
   onUpdateStorageMode,
-  onUpdateGoogleClientId,
   onExportBackup,
   onImportBackup,
 }: UserProfileModalProps) {
@@ -66,8 +63,6 @@ export function UserProfileModal({
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [inputClientId, setInputClientId] = useState(googleClientId);
-  const [clientIdSaved, setClientIdSaved] = useState(false);
   const [importStatus, setImportStatus] = useState<"idle" | "success" | "error">(
     "idle",
   );
@@ -77,10 +72,6 @@ export function UserProfileModal({
   const [isAuthBusy, setIsAuthBusy] = useState(false);
 
   useModalFocusTrap(isOpen, modalRef, closeBtnRef);
-
-  useEffect(() => {
-    setInputClientId(googleClientId);
-  }, [googleClientId]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -100,12 +91,6 @@ export function UserProfileModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-
-  const handleSaveClientId = () => {
-    onUpdateGoogleClientId(inputClientId);
-    setClientIdSaved(true);
-    setTimeout(() => setClientIdSaved(false), 2500);
-  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -399,42 +384,6 @@ export function UserProfileModal({
         </label>
       </div>
 
-      {/* Configuração de Google Client ID */}
-      <div className="mt-1 flex flex-col gap-1.5 border-t border-neutral-200 pt-3 dark:border-neutral-800">
-        <label
-          htmlFor="google-client-id"
-          className="font-mono flex items-center gap-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-300"
-        >
-          <Key className="h-3 w-3" />
-          Google OAuth Client ID (Credencial do seu projeto no GCP):
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            id="google-client-id"
-            type="text"
-            placeholder="ex: 123456789-xyz.apps.googleusercontent.com"
-            value={inputClientId}
-            onChange={(e) => setInputClientId(e.target.value)}
-            className="font-mono flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-950 placeholder-neutral-400 focus:border-neutral-950 focus:outline-hidden dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-500 dark:focus:border-neutral-100"
-          />
-          <button
-            type="button"
-            onClick={handleSaveClientId}
-            className="font-mono cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-          >
-            Salvar
-          </button>
-        </div>
-        {clientIdSaved && (
-          <span className="font-mono flex items-center gap-1 text-[11px] font-medium text-neutral-900 dark:text-neutral-100">
-            <CheckCircle2 className="h-3 w-3" />
-            Client ID salvo com sucesso!
-          </span>
-        )}
-        <p className="font-sans text-[10px] text-neutral-500 dark:text-neutral-400">
-          Para autorizar no Google Cloud Console, adicione <code>https://studychrono.cloud.run</code> em &quot;Origens JavaScript autorizadas&quot;.
-        </p>
-      </div>
     </section>
   );
 

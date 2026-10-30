@@ -568,7 +568,7 @@ test("UserProfileModal renderiza Modo Visitante, Usuário Autenticado, opções 
   assert.match(guestHtml, /Continuar com o Google/);
   assert.match(guestHtml, /Armazenamento Local no Navegador/);
   assert.match(guestHtml, /Google Drive Pessoal/);
-  assert.match(guestHtml, /Google OAuth Client ID/);
+  assert.doesNotMatch(guestHtml, /Google OAuth Client ID/);
   assert.match(guestHtml, /Exportar Backup \(JSON\)/);
   assert.match(guestHtml, /Importar Backup \(JSON\)/);
   assert.match(guestHtml, /Como Funciona o Fechamento Inesperado/);
