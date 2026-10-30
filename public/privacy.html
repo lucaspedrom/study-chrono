@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade — StudyChrono</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card-bg: #141414;
+      --border: #262626;
+      --text: #ededed;
+      --text-muted: #a1a1aa;
+      --accent: #ffffff;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #fafafa;
+        --card-bg: #ffffff;
+        --border: #e5e5e5;
+        --text: #171717;
+        --text-muted: #737373;
+        --accent: #000000;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 720px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    .updated {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+    p, li {
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    a {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 32px;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: var(--bg);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Política de Privacidade</h1>
+    <div class="updated">Última atualização: 30 de outubro de 2026</div>
+
+    <p>O <strong>StudyChrono</strong> é uma aplicação de cronometragem de estudos e produtividade focada em simplicidade, privacidade e controle total dos seus próprios dados.</p>
+
+    <h2>1. Dados Coletados</h2>
+    <p>O StudyChrono opera com uma política estrita de privacidade local:</p>
+    <ul>
+      <li><strong>Modo Visitante:</strong> Todos os seus registros de estudo, tempos líquidos, disciplinas e configurações são gravados exclusivamente no armazenamento local do seu próprio navegador (LocalStorage). Nenhum dado é enviado a servidores de terceiros.</li>
+      <li><strong>Autenticação Google e Sincronização em Nuvem:</strong> Caso opte por conectar sua Conta Google, o aplicativo solicita permissão estrita ao escopo <code>drive.file</code>. Isso permite criar e atualizar unicamente o arquivo de backup <code>studychrono_data.json</code> no seu próprio Google Drive. O StudyChrono não tem e não solicita acesso a outros arquivos do seu Drive.</li>
+      <li><strong>Dados de Perfil:</strong> Coletamos apenas seu nome, e-mail e foto fornecidos pelo Google para exibir seu avatar no cabeçalho do app.</li>
+    </ul>
+
+    <h2>2. Como os Dados são Utilizados</h2>
+    <p>Seus dados são utilizados exclusivamente para:</p>
+    <ul>
+      <li>Permitir a visualização do histórico e métricas das suas sessões de estudo;</li>
+      <li>Sincronizar seus estudos entre diferentes dispositivos por meio do seu próprio Google Drive.</li>
+    </ul>
+    <p>Não realizamos rastreamento, telemetria analítica intrusiva, nem exibição de anúncios.</p>
+
+    <h2>3. Compartilhamento de Dados</h2>
+    <p>O StudyChrono <strong>não vende, não aluga e não compartilha</strong> nenhuma informação pessoal ou histórico de estudos com terceiros, parceiros comerciais ou redes de anúncios.</p>
+
+    <h2>4. Exclusão e Gerenciamento de Dados</h2>
+    <p>Você tem controle total sobre seus dados:</p>
+    <ul>
+      <li>Pode exportar todo o seu histórico em formato JSON ou limpar os dados a qualquer momento nas configurações do aplicativo.</li>
+      <li>Pode desconectar sua Conta Google ou excluir o arquivo <code>studychrono_data.json</code> diretamente do seu Google Drive.</li>
+    </ul>
+
+    <h2>5. Contato</h2>
+    <p>Se você tiver dúvidas sobre esta Política de Privacidade, entre em contato através do e-mail do desenvolvedor: <a href="mailto:lucaspedro771@gmail.com">lucaspedro771@gmail.com</a>.</p>
+
+    <a href="/" class="back-link">← Voltar ao StudyChrono</a>
+  </div>
+</body>
+</html>
