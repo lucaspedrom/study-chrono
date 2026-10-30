@@ -1,1 +1,562 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   Sistema Tipográfico Editorial & Técnico (3 Famílias)
+   1. Serif Editorial (Títulos): "Romana-Book", "Times New Roman", serif
+   2. Mono Técnico (Ações, Rótulos, Relógios): "Akkurat-Mono", "Andale Mono", sans-serif
+   3. Sans Corpo (Texto, Inputs, Leitura): 'AkkuratPro-Regular'
+   Prioriza fontes instaladas localmente via local(...) e embarca equivalentes
+   open-source (SIL OFL 1.1) offline no binário para fidelidade visual imediata.
+   ========================================================================== */
+
+/* 1. Romana-Book (fallback offline de alta fidelidade: Newsreader Variable opsz) */
+@font-face {
+  font-family: "Romana-Book";
+  font-style: normal;
+  font-display: block;
+  font-weight: 200 500;
+  src:
+    local("Romana-Book"),
+    local("Romana Book"),
+    local("Romana BT"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-ext-opsz-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: normal;
+  font-display: block;
+  font-weight: 200 500;
+  src:
+    local("Romana-Book"),
+    local("Romana Book"),
+    local("Romana BT"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: normal;
+  font-display: block;
+  font-weight: 600 800;
+  src:
+    local("Romana-Bold"),
+    local("Romana Bold"),
+    local("Romana BT Bold"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-ext-opsz-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: normal;
+  font-display: block;
+  font-weight: 600 800;
+  src:
+    local("Romana-Bold"),
+    local("Romana Bold"),
+    local("Romana BT Bold"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: italic;
+  font-display: block;
+  font-weight: 200 500;
+  src:
+    local("Romana-Book Italic"),
+    local("Romana BT Italic"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-ext-opsz-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: italic;
+  font-display: block;
+  font-weight: 200 500;
+  src:
+    local("Romana-Book Italic"),
+    local("Romana BT Italic"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: italic;
+  font-display: block;
+  font-weight: 600 800;
+  src:
+    local("Romana-Bold Italic"),
+    local("Romana BT Bold Italic"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-ext-opsz-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Romana-Book";
+  font-style: italic;
+  font-display: block;
+  font-weight: 600 800;
+  src:
+    local("Romana-Bold Italic"),
+    local("Romana BT Bold Italic"),
+    url("../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* 2. Akkurat-Mono (fallback offline neo-grotesco: Roboto Mono Variable) */
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: normal;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("Akkurat-Mono"),
+    local("Akkurat Mono"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-ext-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: normal;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("Akkurat-Mono"),
+    local("Akkurat Mono"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: normal;
+  font-display: block;
+  font-weight: 500 700;
+  src:
+    local("Akkurat-MonoBold"),
+    local("Akkurat Mono Bold"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-ext-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: normal;
+  font-display: block;
+  font-weight: 500 700;
+  src:
+    local("Akkurat-MonoBold"),
+    local("Akkurat Mono Bold"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: italic;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("Akkurat-MonoItalic"),
+    local("Akkurat Mono Italic"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-ext-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: italic;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("Akkurat-MonoItalic"),
+    local("Akkurat Mono Italic"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: italic;
+  font-display: block;
+  font-weight: 500 700;
+  src:
+    local("Akkurat-MonoBoldItalic"),
+    local("Akkurat Mono Bold Italic"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-ext-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Akkurat-Mono";
+  font-style: italic;
+  font-display: block;
+  font-weight: 500 700;
+  src:
+    local("Akkurat-MonoBoldItalic"),
+    local("Akkurat Mono Bold Italic"),
+    url("../node_modules/@fontsource-variable/roboto-mono/files/roboto-mono-latin-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* 3. AkkuratPro-Regular (fallback offline suíço neo-grotesco: Inter Variable) */
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: normal;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("AkkuratPro-Regular"),
+    local("Akkurat Pro Regular"),
+    local("Akkurat Pro"),
+    local("Akkurat"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: normal;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("AkkuratPro-Regular"),
+    local("Akkurat Pro Regular"),
+    local("Akkurat Pro"),
+    local("Akkurat"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: normal;
+  font-display: block;
+  font-weight: 500;
+  src:
+    local("AkkuratPro-Medium"),
+    local("Akkurat Pro Medium"),
+    local("AkkuratPro-Bold"),
+    local("Akkurat Pro Bold"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: normal;
+  font-display: block;
+  font-weight: 500;
+  src:
+    local("AkkuratPro-Medium"),
+    local("Akkurat Pro Medium"),
+    local("AkkuratPro-Bold"),
+    local("Akkurat Pro Bold"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: normal;
+  font-display: block;
+  font-weight: 600 900;
+  src:
+    local("AkkuratPro-Bold"),
+    local("Akkurat Pro Bold"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: normal;
+  font-display: block;
+  font-weight: 600 900;
+  src:
+    local("AkkuratPro-Bold"),
+    local("Akkurat Pro Bold"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: italic;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("AkkuratPro-Italic"),
+    local("Akkurat Pro Italic"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: italic;
+  font-display: block;
+  font-weight: 100 400;
+  src:
+    local("AkkuratPro-Italic"),
+    local("Akkurat Pro Italic"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: italic;
+  font-display: block;
+  font-weight: 500 900;
+  src:
+    local("AkkuratPro-BoldItalic"),
+    local("Akkurat Pro Bold Italic"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "AkkuratPro-Regular";
+  font-style: italic;
+  font-display: block;
+  font-weight: 500 900;
+  src:
+    local("AkkuratPro-BoldItalic"),
+    local("Akkurat Pro Bold Italic"),
+    url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-italic.woff2")
+      format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --font-serif: "Romana-Book", "Times New Roman", serif;
+  --font-mono: "Akkurat-Mono", "Andale Mono", ui-monospace, monospace, sans-serif;
+  --font-sans: 'AkkuratPro-Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+  }
+
+  html {
+    color-scheme: light;
+    background-color: #fafafa;
+    color: #0a0a0a;
+    accent-color: #171717;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    background-color: #0a0a0a;
+    color: #f5f5f5;
+    accent-color: #e5e5e5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+  }
+
+  input,
+  select,
+  textarea,
+  option {
+    font-family: var(--font-sans);
+  }
+
+  button {
+    font-family: var(--font-mono);
+  }
+
+  select option {
+    background-color: #ffffff;
+    color: #0a0a0a;
+  }
+
+  html.dark select option {
+    background-color: #171717;
+    color: #f5f5f5;
+  }
+
+  button:focus-visible,
+  select:focus-visible,
+  a:focus-visible {
+    outline: 2px solid #262626;
+    outline-offset: 2px;
+  }
+
+  html.dark button:focus-visible,
+  html.dark select:focus-visible,
+  html.dark a:focus-visible {
+    outline: 2px solid #d4d4d4;
+    outline-offset: 2px;
+  }
+
+  input[type="date"],
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="date"]::-webkit-datetime-edit-text,
+  input[type="date"]::-webkit-datetime-edit-day-field,
+  input[type="date"]::-webkit-datetime-edit-month-field,
+  input[type="date"]::-webkit-datetime-edit-year-field {
+    font-family: var(--font-mono);
+  }
+
+  input[type="date"]::-webkit-datetime-edit-day-field:focus,
+  input[type="date"]::-webkit-datetime-edit-month-field:focus,
+  input[type="date"]::-webkit-datetime-edit-year-field:focus {
+    background-color: #171717;
+    color: #ffffff;
+    outline: none;
+    border-radius: 2px;
+  }
+
+  html.dark input[type="date"]::-webkit-datetime-edit-day-field:focus,
+  html.dark input[type="date"]::-webkit-datetime-edit-month-field:focus,
+  html.dark input[type="date"]::-webkit-datetime-edit-year-field:focus {
+    background-color: #e5e5e5;
+    color: #0a0a0a;
+    outline: none;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: #171717;
+    color: #ffffff;
+  }
+
+  html.dark ::selection {
+    background-color: #e5e5e5;
+    color: #0a0a0a;
+  }
+
+  /* Barra de rolagem monocromática para temas claro e escuro */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a3a3a3;
+  }
+
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #262626;
+  }
+
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #404040;
+  }
+}
+
+.tabular-clock {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-kerning: none;
+  font-feature-settings: "tnum" 1, "lnum" 1, "kern" 0;
+}

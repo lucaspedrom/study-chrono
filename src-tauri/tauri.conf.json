@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "study-chrono",
+  "productName": "StudyChrono",
   "version": "0.1.0",
-  "identifier": "com.studychrono.app",
+  "identifier": "com.studychrono.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "study-chrono",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "title": "StudyChrono",
+        "width": 900,
+        "height": 720,
+        "minWidth": 760,
+        "minHeight": 640,
+        "center": true
       }
     ],
     "security": {

@@ -1,13 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri + React + Typescript</title>
+    <title>StudyChrono</title>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("study_chrono_theme");
+          if (saved === "light") {
+            document.documentElement.classList.remove("dark");
+          } else {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (_) {}
+      })();
+    </script>
   </head>
 
-  <body>
+  <body class="bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-100 antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
