@@ -13,6 +13,7 @@ import {
   Info,
   ShieldCheck,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import type { UserProfile, StorageMode } from "../types/session";
 import { useModalFocusTrap } from "../utils/useModalFocusTrap";
@@ -30,8 +31,12 @@ export interface UserProfileModalProps {
   user: UserProfile | null;
   storageMode: StorageMode;
   googleClientId: string;
+  isSyncingDrive?: boolean;
+  driveLastSyncedAt?: string | null;
   onClose: () => void;
-  onLoginDemo: () => void;
+  onLoginDemo?: () => void;
+  onLoginGoogle?: () => Promise<void>;
+  onSyncDriveNow?: () => Promise<void>;
   onLogout: () => void;
   onUpdateStorageMode: (mode: StorageMode) => void;
   onUpdateGoogleClientId: (clientId: string) => void;
@@ -45,8 +50,12 @@ export function UserProfileModal({
   user,
   storageMode,
   googleClientId,
+  isSyncingDrive = false,
+  driveLastSyncedAt = null,
   onClose,
   onLoginDemo,
+  onLoginGoogle,
+  onSyncDriveNow,
   onLogout,
   onUpdateStorageMode,
   onUpdateGoogleClientId,
@@ -63,6 +72,10 @@ export function UserProfileModal({
     "idle",
   );
 
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
+  const [isAuthBusy, setIsAuthBusy] = useState(false);
+
   useModalFocusTrap(isOpen, modalRef, closeBtnRef);
 
   useEffect(() => {
@@ -70,7 +83,12 @@ export function UserProfileModal({
   }, [googleClientId]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setAuthError(null);
+      setAuthSuccess(null);
+      return;
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -100,13 +118,32 @@ export function UserProfileModal({
     }
   };
 
+  const handleGoogleClick = async () => {
+    setAuthError(null);
+    setAuthSuccess(null);
+    setIsAuthBusy(true);
+
+    try {
+      if (onLoginGoogle) {
+        await onLoginGoogle();
+        setAuthSuccess("Conectado com sucesso à conta Google!");
+      } else if (onLoginDemo) {
+        onLoginDemo();
+      }
+    } catch (err: any) {
+      setAuthError(err.message || "Falha ao conectar com a conta Google.");
+    } finally {
+      setIsAuthBusy(false);
+    }
+  };
+
   // Metadados do cabeçalho de acordo com a seção ativa
   const getHeaderMeta = () => {
     switch (activeSection) {
       case "profile":
         return {
           title: "Perfil do Usuário",
-          description: "Gerencie sua sessão e dados de identificação.",
+          description: "Gerencie sua sessão e identificação Google.",
           icon: <User className="h-4 w-4 text-neutral-900 dark:text-neutral-100" />,
         };
       case "storage":
@@ -137,7 +174,7 @@ export function UserProfileModal({
         return {
           title: "Perfil e Armazenamento",
           description:
-            "Gerencie sua sessão, dados locais e configurações de sincronização.",
+            "Gerencie sua sessão, dados locais e sincronização com Google Drive.",
           icon: <User className="h-4 w-4 text-neutral-900 dark:text-neutral-100" />,
         };
     }
@@ -156,20 +193,32 @@ export function UserProfileModal({
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 font-mono text-sm font-semibold text-white dark:bg-neutral-100 dark:text-neutral-950">
-                {user.name.charAt(0).toUpperCase()}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-neutral-900 font-mono text-sm font-semibold text-white dark:bg-neutral-100 dark:text-neutral-950 overflow-hidden">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  user.name.charAt(0).toUpperCase()
+                )}
               </div>
-              <div>
-                <div className="font-sans text-sm font-semibold text-neutral-950 dark:text-neutral-100">
+              <div className="min-w-0">
+                <div className="font-sans text-sm font-semibold text-neutral-950 dark:text-neutral-100 truncate">
                   {user.name}
                 </div>
-                <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 truncate">
                   {user.email}
                 </div>
               </div>
             </div>
             <span className="font-mono rounded-full border border-neutral-300 bg-white px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.05em] text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-              {user.isDemo ? "Teste / Demo" : "Conectado"}
+              {user.provider === "google"
+                ? "Conta Google"
+                : user.isDemo
+                  ? "Teste / Demo"
+                  : "Conectado"}
             </span>
           </div>
 
@@ -189,20 +238,55 @@ export function UserProfileModal({
           <div className="flex items-start gap-2.5 text-xs text-neutral-600 dark:text-neutral-400">
             <Info className="h-4 w-4 shrink-0 text-neutral-500 mt-0.5" />
             <span>
-              Você está em <strong>Modo Visitante</strong>. O cronômetro funciona normalmente sem login prévio e seus dados são salvos localmente neste navegador.
+              Você está em <strong>Modo Visitante</strong>. Suas horas e matérias são salvas neste navegador. Conecte sua Conta Google para sincronização automática em nuvem no seu Google Drive.
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex flex-col gap-2.5 pt-1">
             <button
               type="button"
-              onClick={onLoginDemo}
-              className="font-mono inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-900 bg-neutral-900 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.06em] text-white hover:bg-neutral-800 dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-neutral-200 transition-colors"
+              disabled={isAuthBusy}
+              onClick={handleGoogleClick}
+              className="font-sans flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-neutral-300 bg-white py-2.5 text-xs font-semibold text-neutral-900 shadow-xs transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
             >
-              <User className="h-3.5 w-3.5" />
-              Entrar como Usuário de Teste
+              <svg className="h-4 w-4" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              {isAuthBusy ? "Conectando ao Google..." : "Continuar com o Google"}
             </button>
+            <p className="font-sans text-[11px] text-neutral-500 dark:text-neutral-400 text-center">
+              Login rápido em 1 clique sem burocracia de senhas. Seus dados de estudo ficam salvos com segurança no seu próprio Google Drive.
+            </p>
           </div>
+
+          {authError && (
+            <div className="flex items-center gap-1.5 rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-400">
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              <span>{authError}</span>
+            </div>
+          )}
+
+          {authSuccess && (
+            <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 p-2 text-xs text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              <span>{authSuccess}</span>
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -239,7 +323,7 @@ export function UserProfileModal({
                 Armazenamento Local no Navegador (LocalStorage / IndexedDB)
               </span>
               <span className="font-mono text-[10px] font-semibold uppercase text-neutral-600 dark:text-neutral-300">
-                Ativo
+                {storageMode === "local" ? "Ativo" : ""}
               </span>
             </div>
             <p className="font-sans text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
@@ -248,7 +332,7 @@ export function UserProfileModal({
           </div>
         </label>
 
-        {/* Opção 2: Google Drive Pessoal */}
+        {/* Opção 2: Google Drive Pessoal (Sincronização em Nuvem) */}
         <label
           className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
             storageMode === "drive"
@@ -270,13 +354,47 @@ export function UserProfileModal({
                 <Cloud className="h-3.5 w-3.5" />
                 Google Drive Pessoal (Sincronização em Nuvem)
               </span>
-              <span className="font-mono rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                Em breve / Configurar
+              <span className="font-mono rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                {storageMode === "drive" ? "Ativo" : "Disponível"}
               </span>
             </div>
             <p className="font-sans text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-              Sincronização em nuvem para acessar suas horas estudadas de qualquer computador ou celular mantendo a posse dos seus dados no seu próprio Google Drive.
+              Sincronização contínua na nuvem para acessar suas horas estudadas de qualquer computador ou celular, mantendo a posse dos seus dados no seu próprio Google Drive (`studychrono_data.json`).
             </p>
+
+            {/* Ações do Google Drive se o modo estiver selecionado */}
+            {storageMode === "drive" && (
+              <div className="mt-2 flex flex-col gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5 dark:border-neutral-800 dark:bg-neutral-950">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Cloud className="h-4 w-4 text-neutral-700 dark:text-neutral-300" />
+                    <span className="font-sans text-xs font-medium text-neutral-900 dark:text-neutral-100">
+                      Sincronização em Nuvem:
+                    </span>
+                  </div>
+
+                  {onSyncDriveNow && (
+                    <button
+                      type="button"
+                      disabled={isSyncingDrive}
+                      onClick={onSyncDriveNow}
+                      className="font-mono inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-800 hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      <RefreshCw
+                        className={`h-3 w-3 ${isSyncingDrive ? "animate-spin" : ""}`}
+                      />
+                      {isSyncingDrive ? "Sincronizando..." : "Sincronizar Agora"}
+                    </button>
+                  )}
+                </div>
+
+                {driveLastSyncedAt && (
+                  <span className="font-mono text-[10px] text-neutral-500 dark:text-neutral-400">
+                    Última sincronização no Drive: {new Date(driveLastSyncedAt).toLocaleString("pt-BR")}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </label>
       </div>
@@ -288,7 +406,7 @@ export function UserProfileModal({
           className="font-mono flex items-center gap-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-300"
         >
           <Key className="h-3 w-3" />
-          Google OAuth Client ID (Opcional para ambiente próprio):
+          Google OAuth Client ID (Credencial do seu projeto no GCP):
         </label>
         <div className="flex items-center gap-2">
           <input
@@ -313,6 +431,9 @@ export function UserProfileModal({
             Client ID salvo com sucesso!
           </span>
         )}
+        <p className="font-sans text-[10px] text-neutral-500 dark:text-neutral-400">
+          Para autorizar no Google Cloud Console, adicione <code>https://studychrono.cloud.run</code> em &quot;Origens JavaScript autorizadas&quot;.
+        </p>
       </div>
     </section>
   );

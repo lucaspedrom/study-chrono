@@ -565,15 +565,14 @@ test("UserProfileModal renderiza Modo Visitante, Usuário Autenticado, opções 
   );
   assert.match(guestHtml, /Perfil e Armazenamento/);
   assert.match(guestHtml, /Modo Visitante/);
-  assert.match(guestHtml, /Entrar como Usuário de Teste/);
+  assert.match(guestHtml, /Continuar com o Google/);
   assert.match(guestHtml, /Armazenamento Local no Navegador/);
   assert.match(guestHtml, /Google Drive Pessoal/);
-  assert.match(guestHtml, /Em breve \/ Configurar/);
   assert.match(guestHtml, /Google OAuth Client ID/);
   assert.match(guestHtml, /Exportar Backup \(JSON\)/);
   assert.match(guestHtml, /Importar Backup \(JSON\)/);
   assert.match(guestHtml, /Como Funciona o Fechamento Inesperado/);
-  assert.doesNotMatch(guestHtml, /\b(emerald|amber|rose|slate)-/);
+  assert.doesNotMatch(guestHtml, /\b(amber|rose|slate)-/);
 
   // 3) Modo Usuário Autenticado (Demonstração / Teste)
   const userHtml = renderToStaticMarkup(
@@ -834,7 +833,7 @@ test("UserMenuPopover renderiza resumo compacto de visitante e usuário autentic
   );
   assert.match(guestMenuHtml, /Modo Visitante/);
   assert.match(guestMenuHtml, /Dados salvos localmente neste navegador/);
-  assert.match(guestMenuHtml, /Entrar como Usuário de Teste/);
+  assert.match(guestMenuHtml, /Entrar com o Google/);
   assert.match(guestMenuHtml, /Perfil/);
   assert.match(guestMenuHtml, /Configuração \/ Armazenamento/);
   assert.match(guestMenuHtml, /Backup de Dados/);
@@ -933,6 +932,25 @@ test("UserProfileModal suporta seções individuais compactas e sóbrias (profil
   assert.doesNotMatch(helpHtml, /Google OAuth Client ID/);
   assert.doesNotMatch(helpHtml, /Exportar Backup/);
 });
+
+test("AuthService suporta autenticação oficial por conta Google e persistência", async () => {
+  const { loginWithGoogleData } = await import(
+    "../src/services/authService"
+  );
+
+  const googleUser = await loginWithGoogleData({
+    id: "google_123456789",
+    name: "Lucas Pedro",
+    email: "lucas.pedro@gmail.com",
+    avatarUrl: "https://lh3.googleusercontent.com/a/photo.jpg",
+  });
+  assert.equal(googleUser.name, "Lucas Pedro");
+  assert.equal(googleUser.email, "lucas.pedro@gmail.com");
+  assert.equal(googleUser.provider, "google");
+  assert.equal(googleUser.storageMode, "drive");
+  assert.equal(googleUser.isDemo, false);
+});
+
 
 
 

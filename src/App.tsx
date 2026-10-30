@@ -12,6 +12,14 @@ import {
   type UserProfileModalSection,
 } from "./components/UserProfileModal";
 import { UserMenuPopover } from "./components/UserMenuPopover";
+import { loginWithGoogleData } from "./services/authService";
+import {
+  requestGoogleOAuthToken,
+  fetchGoogleUserInfo,
+  syncWithGoogleDrive,
+  getCachedGoogleToken,
+  setCachedGoogleToken,
+} from "./services/googleDriveService";
 import {
   confirmCloseAndExit,
   deleteHistorySession,
@@ -33,6 +41,7 @@ import {
   updateHistorySession,
   updateSessionMetadata,
 } from "./services/tauriApi";
+import { STORAGE_KEYS, safeGetItem } from "./services/webTracker";
 import {
   IDLE_SNAPSHOT,
   type AppTab,
@@ -100,6 +109,10 @@ function App() {
   const [activeModalSection, setActiveModalSection] =
     useState<UserProfileModalSection | null>(null);
   const [showVisitorNotice, setShowVisitorNotice] = useState(false);
+  const [isSyncingDrive, setIsSyncingDrive] = useState(false);
+  const [driveLastSyncedAt, setDriveLastSyncedAt] = useState<string | null>(
+    () => safeGetItem(STORAGE_KEYS.LAST_DRIVE_SYNC),
+  );
 
   const subjectInputRef = useRef<HTMLInputElement | null>(null);
   const actionVersionRef = useRef(0);
@@ -427,6 +440,15 @@ function App() {
       const historyData = await getHistoryData();
       setHistorySessions(historyData.sessions);
       setSubjects(historyData.subjects);
+
+      if (storageMode === "drive") {
+        const token = getCachedGoogleToken();
+        if (token) {
+          syncWithGoogleDrive(token)
+            .then((res) => setDriveLastSyncedAt(res.syncedAt))
+            .catch((err) => console.warn("Sincronização em segundo plano no Drive:", err));
+        }
+      }
     } catch (err) {
       setErrorBanner(String(err));
     } finally {
@@ -493,6 +515,15 @@ function App() {
       const historyData = await getHistoryData();
       setHistorySessions(historyData.sessions);
       setSubjects(historyData.subjects);
+
+      if (storageMode === "drive") {
+        const token = getCachedGoogleToken();
+        if (token) {
+          syncWithGoogleDrive(token)
+            .then((res) => setDriveLastSyncedAt(res.syncedAt))
+            .catch((err) => console.warn("Sincronização em segundo plano no Drive:", err));
+        }
+      }
     } catch (err) {
       setIsClosing(false);
       setIsCloseModalOpen(false);
@@ -501,6 +532,63 @@ function App() {
   };
 
   // Funções de Gestão de Usuário e Armazenamento
+  const handleLoginGoogle = async () => {
+    const clientId = googleClientId.trim();
+    if (!clientId) {
+      throw new Error(
+        "Por favor, informe seu Google OAuth Client ID na aba Armazenamento antes de conectar.",
+      );
+    }
+    const token = await requestGoogleOAuthToken(clientId);
+    const googleUser = await fetchGoogleUserInfo(token);
+    const profile = await loginWithGoogleData(googleUser);
+    setUser(profile);
+    setStorageMode("drive");
+    setStorageConfigWeb({ mode: "drive" });
+    setShowVisitorNotice(false);
+
+    try {
+      setIsSyncingDrive(true);
+      const syncResult = await syncWithGoogleDrive(token);
+      setDriveLastSyncedAt(syncResult.syncedAt);
+      const historyData = await getHistoryData();
+      setHistorySessions(historyData.sessions);
+      setSubjects(historyData.subjects);
+    } catch (e: any) {
+      console.warn("Sincronização inicial no Google Drive:", e);
+    } finally {
+      setIsSyncingDrive(false);
+    }
+  };
+
+  const handleSyncDriveNow = async () => {
+    try {
+      setIsSyncingDrive(true);
+      let token = getCachedGoogleToken();
+      if (!token) {
+        const clientId = googleClientId.trim();
+        if (!clientId) {
+          throw new Error(
+            "Configure seu Google OAuth Client ID na aba Armazenamento para autorizar o acesso ao Drive.",
+          );
+        }
+        token = await requestGoogleOAuthToken(clientId);
+      }
+      const syncResult = await syncWithGoogleDrive(token);
+      setDriveLastSyncedAt(syncResult.syncedAt);
+      const historyData = await getHistoryData();
+      setHistorySessions(historyData.sessions);
+      setSubjects(historyData.subjects);
+    } catch (err: any) {
+      setErrorBanner(
+        `Erro na sincronização com Google Drive: ${err.message || err}`,
+      );
+      throw err;
+    } finally {
+      setIsSyncingDrive(false);
+    }
+  };
+
   const handleLoginDemo = () => {
     const logged = loginDemoUserWeb();
     setUser(logged);
@@ -509,6 +597,7 @@ function App() {
 
   const handleLogout = () => {
     logoutUserWeb();
+    setCachedGoogleToken(null);
     setUser(null);
   };
 
@@ -820,8 +909,12 @@ function App() {
         user={user}
         storageMode={storageMode}
         googleClientId={googleClientId}
+        isSyncingDrive={isSyncingDrive}
+        driveLastSyncedAt={driveLastSyncedAt}
         onClose={() => setActiveModalSection(null)}
         onLoginDemo={handleLoginDemo}
+        onLoginGoogle={handleLoginGoogle}
+        onSyncDriveNow={handleSyncDriveNow}
         onLogout={handleLogout}
         onUpdateStorageMode={handleUpdateStorageMode}
         onUpdateGoogleClientId={handleUpdateGoogleClientId}

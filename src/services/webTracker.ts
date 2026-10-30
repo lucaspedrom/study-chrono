@@ -20,6 +20,9 @@ export const STORAGE_KEYS = {
   USER: "study_chrono_user",
   STORAGE_MODE: "study_chrono_storage_mode",
   GOOGLE_CLIENT_ID: "study_chrono_google_client_id",
+  GOOGLE_ACCESS_TOKEN: "study_chrono_google_access_token",
+  ACCOUNTS: "study_chrono_accounts",
+  LAST_DRIVE_SYNC: "study_chrono_last_drive_sync",
 } as const;
 
 export interface ActiveSessionData {
@@ -59,7 +62,7 @@ function getStorage(): Storage | null {
   return null;
 }
 
-function safeGetItem(key: string): string | null {
+export function safeGetItem(key: string): string | null {
   const storage = getStorage();
   if (storage) {
     try {
@@ -71,7 +74,7 @@ function safeGetItem(key: string): string | null {
   return memoryStore.get(key) ?? null;
 }
 
-function safeSetItem(key: string, value: string): void {
+export function safeSetItem(key: string, value: string): void {
   const storage = getStorage();
   if (storage) {
     try {
@@ -84,7 +87,7 @@ function safeSetItem(key: string, value: string): void {
   memoryStore.set(key, value);
 }
 
-function safeRemoveItem(key: string): void {
+export function safeRemoveItem(key: string): void {
   const storage = getStorage();
   if (storage) {
     try {

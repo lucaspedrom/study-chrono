@@ -15,8 +15,8 @@ export interface UserProfile {
   name: string;
   email: string;
   avatarUrl?: string;
-  isDemo: boolean;
-  provider: "guest" | "demo" | "google";
+  isDemo?: boolean;
+  provider: "guest" | "demo" | "google" | "email";
   storageMode: StorageMode;
   googleClientId?: string;
 }
