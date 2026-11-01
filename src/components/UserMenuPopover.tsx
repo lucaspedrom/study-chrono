@@ -15,6 +15,7 @@ export type UserSection = "profile" | "storage" | "backup" | "help";
 export interface UserMenuPopoverProps {
   isOpen: boolean;
   user: UserProfile | null;
+  placement?: "top" | "bottom";
   onClose: () => void;
   onOpenSection: (section: UserSection) => void;
   onLoginDemo?: () => void;
@@ -24,6 +25,7 @@ export interface UserMenuPopoverProps {
 export function UserMenuPopover({
   isOpen,
   user,
+  placement = "top",
   onClose,
   onOpenSection,
   onLogout,
@@ -48,22 +50,28 @@ export function UserMenuPopover({
 
   if (!isOpen) return null;
 
+  const isBottom = placement === "bottom";
+
   return (
     <>
       {/* Backdrop transparente para captura de clique externo sem escurecer a tela */}
       <div
         role="presentation"
         aria-hidden="true"
-        className="fixed inset-0 z-30 cursor-default"
+        className="fixed inset-0 z-30 cursor-default bg-black/25 md:bg-transparent"
         onClick={onClose}
       />
 
-      {/* Caixa flutuante (Popover) posicionada logo abaixo do botão de usuário */}
+      {/* Caixa flutuante (Popover) posicionada relativa ao botão ou ancorada no rodapé */}
       <div
         ref={popoverRef}
         role="menu"
         aria-label="Menu de usuário e configurações"
-        className="absolute right-0 top-full z-40 mt-2 w-80 rounded-xl border border-neutral-300 bg-white p-3 text-neutral-950 shadow-xl outline-hidden animate-in fade-in zoom-in-95 duration-100 select-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
+        className={
+          isBottom
+            ? "fixed bottom-18 right-3 left-3 sm:left-auto sm:right-4 sm:w-80 z-40 max-h-[80vh] overflow-y-auto rounded-xl border border-neutral-300 bg-white p-3 text-neutral-950 shadow-2xl outline-hidden animate-in fade-in slide-in-from-bottom-2 duration-150 select-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
+            : "absolute right-0 top-full z-40 mt-2 w-80 rounded-xl border border-neutral-300 bg-white p-3 text-neutral-950 shadow-xl outline-hidden animate-in fade-in zoom-in-95 duration-100 select-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
+        }
       >
         {/* Resumo simples do Usuário / Modo Visitante */}
         {user ? (

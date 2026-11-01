@@ -22,8 +22,8 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({ snapshot }) => {
       : "text-neutral-800 dark:text-neutral-300";
 
   return (
-    <section className="flex flex-col items-center justify-center rounded-xl border border-neutral-300 bg-white px-6 py-4 sm:py-5 text-center dark:border-neutral-800 dark:bg-neutral-900">
-      <h2 className="font-serif text-xl sm:text-2xl font-normal tracking-[-0.015em] text-neutral-700 dark:text-neutral-300">
+    <section className="flex flex-col items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 sm:px-6 py-3.5 sm:py-5 text-center dark:border-neutral-800 dark:bg-neutral-900">
+      <h2 className="font-serif text-lg sm:text-2xl font-normal tracking-[-0.015em] text-neutral-700 dark:text-neutral-300">
         Tempo Líquido de Estudo
       </h2>
 
@@ -32,12 +32,12 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({ snapshot }) => {
         aria-live="off"
         className={`tabular-clock font-mono mt-1.5 flex items-baseline justify-center tabular-nums transition-colors ${clockColorClass}`}
       >
-        <span className="tabular-clock font-mono text-6xl sm:text-7xl font-normal tracking-tight leading-none tabular-nums">
+        <span className="tabular-clock font-mono text-5xl min-[380px]:text-6xl sm:text-7xl font-normal tracking-tight leading-none tabular-nums">
           {main}
         </span>
         <span
           data-testid="timer-tenths"
-          className="tabular-clock font-mono ml-0.5 inline-block text-left text-2xl sm:text-3xl font-light leading-none text-neutral-400 tabular-nums dark:text-neutral-500"
+          className="tabular-clock font-mono ml-0.5 inline-block text-left text-xl min-[380px]:text-2xl sm:text-3xl font-light leading-none text-neutral-400 tabular-nums dark:text-neutral-500"
         >
           .{tenths}
         </span>

@@ -647,130 +647,140 @@ function App() {
 
   return (
     <div className="flex h-screen flex-col bg-neutral-50 text-neutral-950 select-none dark:bg-neutral-950 dark:text-neutral-100">
-      {/* Cabeçalho com navegação por abas centralizada, seletor de tema e menu flutuante de usuário */}
-      <header className="relative flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-2.5 dark:border-neutral-800 dark:bg-neutral-900">
-        {/* Wordmark limpo StudyChrono (sem ícone) */}
-        <div className="flex items-center">
-          <h1 className="font-serif text-xl font-normal tracking-[-0.02em] leading-none text-neutral-950 dark:text-neutral-100">
-            StudyChrono
-          </h1>
+      {/* Cabeçalho superior: no mobile, StudyChrono centralizado com botão de tema; no desktop, layout expandido */}
+      <header className="relative flex min-h-[48px] items-center justify-between border-b border-neutral-200 bg-white px-4 py-2 sm:px-5 sm:py-2.5 dark:border-neutral-800 dark:bg-neutral-900">
+        {/* Wordmark limpo StudyChrono: no mobile fica centralizado de forma absoluta; no desktop alinha à esquerda */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:static md:translate-x-0 md:translate-y-0">
+          <div className="flex items-center">
+            <h1 className="font-serif text-lg sm:text-xl font-normal tracking-[-0.02em] leading-none text-neutral-950 dark:text-neutral-100">
+              StudyChrono
+            </h1>
+          </div>
         </div>
 
-        {/* Navegação entre Cronômetro e Histórico centralizada com precisão absoluta */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <nav
-            role="tablist"
-            aria-label="Seções do aplicativo"
-            className="h-8 inline-flex items-center rounded-lg border border-neutral-300 bg-neutral-100 p-0.5 dark:border-neutral-800 dark:bg-neutral-950"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "timer"}
-              onClick={() => handleSelectTab("timer")}
-              className={`font-mono inline-flex h-full cursor-pointer items-center justify-center gap-1.5 rounded-md px-3.5 text-[11px] font-medium uppercase tracking-[0.08em] transition-colors ${
-                activeTab === "timer"
-                  ? "bg-neutral-950 text-white shadow-xs dark:bg-neutral-100 dark:text-neutral-950"
-                  : "text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-neutral-100"
-              }`}
+        {/* Navegação entre Cronômetro e Histórico (Desktop - oculta no mobile, onde fica na barra inferior) */}
+        <div className="hidden md:block">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <nav
+              role="tablist"
+              aria-label="Seções do aplicativo"
+              className="h-8 inline-flex items-center rounded-lg border border-neutral-300 bg-neutral-100 p-0.5 dark:border-neutral-800 dark:bg-neutral-950"
             >
-              <Clock className="h-3.5 w-3.5" />
-              Cronômetro
-              {snapshot.status !== "idle" && activeTab !== "timer" && (
-                <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-              )}
-            </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "timer"}
+                onClick={() => handleSelectTab("timer")}
+                className={`font-mono inline-flex h-full cursor-pointer items-center justify-center gap-1.5 rounded-md px-3.5 text-[11px] font-medium uppercase tracking-[0.08em] transition-colors ${
+                  activeTab === "timer"
+                    ? "bg-neutral-950 text-white shadow-xs dark:bg-neutral-100 dark:text-neutral-950"
+                    : "text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-neutral-100"
+                }`}
+              >
+                <Clock className="h-3.5 w-3.5" />
+                Cronômetro
+                {snapshot.status !== "idle" && activeTab !== "timer" && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+                )}
+              </button>
 
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "history"}
-              onClick={() => handleSelectTab("history")}
-              className={`font-mono inline-flex h-full cursor-pointer items-center justify-center gap-1.5 rounded-md px-3.5 text-[11px] font-medium uppercase tracking-[0.08em] transition-colors ${
-                activeTab === "history"
-                  ? "bg-neutral-950 text-white shadow-xs dark:bg-neutral-100 dark:text-neutral-950"
-                  : "text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-neutral-100"
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Histórico
-            </button>
-          </nav>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "history"}
+                onClick={() => handleSelectTab("history")}
+                className={`font-mono inline-flex h-full cursor-pointer items-center justify-center gap-1.5 rounded-md px-3.5 text-[11px] font-medium uppercase tracking-[0.08em] transition-colors ${
+                  activeTab === "history"
+                    ? "bg-neutral-950 text-white shadow-xs dark:bg-neutral-100 dark:text-neutral-950"
+                    : "text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-neutral-100"
+                }`}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Histórico
+              </button>
+            </nav>
+          </div>
         </div>
 
-        {/* Controles do topo à direita: Tema Claro/Escuro e Perfil do Usuário com mesma altura h-8 */}
-        <div className="flex items-center gap-2">
-          {/* Seletor de Tema Claro / Escuro */}
+        {/* Controles do topo à direita: botão de tema quadrado (mobile e desktop) e menu de usuário (apenas desktop) */}
+        <div className="ml-auto flex items-center gap-2">
+          {/* Botão de alternância de tema (Sol/Lua quadrado), padronizado em todas as telas */}
           <div
             role="group"
             aria-label="Tema de aparência"
-            className="h-8 inline-flex items-center rounded-lg border border-neutral-300 bg-neutral-100 p-0.5 dark:border-neutral-800 dark:bg-neutral-950"
+            className="h-8 flex items-center"
           >
             <button
               type="button"
-              aria-pressed={theme === "light"}
-              onClick={() => setTheme("light")}
-              className={`font-mono inline-flex h-full cursor-pointer items-center justify-center gap-1 rounded-md border px-2.5 text-[11px] font-medium uppercase tracking-[0.06em] transition-colors ${
-                theme === "light"
-                  ? "border-neutral-300 bg-white text-neutral-950 shadow-xs"
-                  : "border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
-              }`}
-            >
-              <Sun className="h-3.5 w-3.5" />
-              Claro
-            </button>
-            <button
-              type="button"
-              aria-pressed={theme === "dark"}
-              onClick={() => setTheme("dark")}
-              className={`font-mono inline-flex h-full cursor-pointer items-center justify-center gap-1 rounded-md border px-2.5 text-[11px] font-medium uppercase tracking-[0.06em] transition-colors ${
+              aria-label={
                 theme === "dark"
-                  ? "border-neutral-700 bg-neutral-800 text-white shadow-xs"
-                  : "border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
-              }`}
+                  ? "Alternar para tema Claro"
+                  : "Alternar para tema Escuro"
+              }
+              title={
+                theme === "dark"
+                  ? "Mudar para tema Claro"
+                  : "Mudar para tema Escuro"
+              }
+              onClick={() =>
+                setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+              }
+              className="h-8 w-8 inline-flex cursor-pointer items-center justify-center rounded-lg border border-neutral-300 bg-neutral-100 text-neutral-800 transition-colors hover:bg-neutral-200 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:bg-neutral-900"
             >
-              <Moon className="h-3.5 w-3.5" />
-              Escuro
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+              <span className="sr-only">
+                {theme === "dark"
+                  ? "Alternar para tema Claro"
+                  : "Alternar para tema Escuro"}{" "}
+                (Claro / Escuro)
+              </span>
             </button>
           </div>
 
-          {/* Botão de Perfil do Usuário & Caixa Flutuante (Menu Popover) */}
-          <div className="relative flex items-center h-8">
-            <button
-              type="button"
-              aria-label="Perfil do usuário e configurações de armazenamento"
-              aria-expanded={isUserMenuOpen}
-              aria-haspopup="menu"
-              onClick={() => setIsUserMenuOpen((prev) => !prev)}
-              className="font-mono h-8 inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-100 px-3 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-800 transition-colors hover:bg-neutral-200 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:bg-neutral-900"
-            >
-              <User className="h-3.5 w-3.5 text-neutral-900 dark:text-neutral-100" />
-              <span>{user ? user.name.split(" ")[0] : "Entrar"}</span>
-              {user && (
-                <span
-                  className="h-1.5 w-1.5 rounded-full bg-neutral-900 dark:bg-neutral-100"
-                  title="Usuário conectado"
-                />
-              )}
-            </button>
+          {/* Botão de Perfil do Usuário & Caixa Flutuante (Menu Popover Desktop) */}
+          <div className="hidden md:flex items-center gap-2">
+            <div className="relative flex items-center h-8">
+              <button
+                type="button"
+                aria-label="Perfil do usuário e configurações de armazenamento"
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                className="font-mono h-8 inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-100 px-3 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-800 transition-colors hover:bg-neutral-200 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:bg-neutral-900"
+              >
+                <User className="h-3.5 w-3.5 text-neutral-900 dark:text-neutral-100" />
+                <span>{user ? user.name.split(" ")[0] : "Entrar"}</span>
+                {user && (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-neutral-900 dark:bg-neutral-100"
+                    title="Usuário conectado"
+                  />
+                )}
+              </button>
 
-            <UserMenuPopover
-              isOpen={isUserMenuOpen}
-              user={user}
-              onClose={() => setIsUserMenuOpen(false)}
-              onOpenSection={(section) => {
-                setIsUserMenuOpen(false);
-                setActiveModalSection(section);
-              }}
-              onLoginDemo={handleLoginDemo}
-              onLogout={handleLogout}
-            />
+              <UserMenuPopover
+                isOpen={isUserMenuOpen}
+                user={user}
+                placement="top"
+                onClose={() => setIsUserMenuOpen(false)}
+                onOpenSection={(section) => {
+                  setIsUserMenuOpen(false);
+                  setActiveModalSection(section);
+                }}
+                onLoginDemo={handleLoginDemo}
+                onLogout={handleLogout}
+              />
+            </div>
           </div>
         </div>
       </header>
 
       {/* Conteúdo principal */}
-      <main className="mx-auto flex w-full max-w-5xl flex-1 min-h-0 flex-col gap-3 px-5 py-3">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 min-h-0 flex-col gap-3 px-3.5 py-3 pb-20 sm:px-5 md:pb-3">
         {/* Notificação de Modo Visitante ao iniciar contagem sem autenticação */}
         {showVisitorNotice && !user && (
           <div
@@ -894,6 +904,107 @@ function App() {
           />
         )}
       </main>
+
+      {/* Barra de Navegação Inferior Fixa para Dispositivos Móveis (igual aplicativos de celular) */}
+      <nav
+        aria-label="Navegação inferior móvel"
+        className="fixed bottom-0 inset-x-0 z-40 flex h-16 items-center justify-around border-t border-neutral-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md select-none dark:border-neutral-800 dark:bg-neutral-900/95 md:hidden"
+      >
+        {/* Aba Cronômetro */}
+        <button
+          type="button"
+          role="tab"
+          aria-label="Aba Cronômetro"
+          aria-selected={activeTab === "timer"}
+          onClick={() => handleSelectTab("timer")}
+          className={`relative flex flex-1 flex-col items-center justify-center py-1 transition-colors ${
+            activeTab === "timer"
+              ? "text-neutral-950 font-semibold dark:text-white"
+              : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+          }`}
+        >
+          <div className="relative">
+            <Clock className="h-5 w-5" />
+            {snapshot.status !== "idle" && activeTab !== "timer" && (
+              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse ring-2 ring-white dark:ring-neutral-900" />
+            )}
+          </div>
+          <span className="font-mono mt-1 text-[10px] uppercase tracking-wider">
+            Cronômetro
+          </span>
+        </button>
+
+        {/* Aba Histórico */}
+        <button
+          type="button"
+          role="tab"
+          aria-label="Aba Histórico"
+          aria-selected={activeTab === "history"}
+          onClick={() => handleSelectTab("history")}
+          className={`relative flex flex-1 flex-col items-center justify-center py-1 transition-colors ${
+            activeTab === "history"
+              ? "text-neutral-950 font-semibold dark:text-white"
+              : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+          }`}
+        >
+          <FileText className="h-5 w-5" />
+          <span className="font-mono mt-1 text-[10px] uppercase tracking-wider">
+            Histórico
+          </span>
+        </button>
+
+        {/* Acesso a Informações do Usuário */}
+        <div className="relative flex flex-1 flex-col items-center justify-center">
+          <button
+            type="button"
+            aria-label="Perfil do usuário e configurações de armazenamento (móvel)"
+            aria-expanded={isUserMenuOpen}
+            onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            className={`relative flex flex-col items-center justify-center py-1 transition-colors ${
+              isUserMenuOpen
+                ? "text-neutral-950 font-semibold dark:text-white"
+                : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+            }`}
+          >
+            <div className="relative flex items-center justify-center">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="h-5 w-5 rounded-full object-cover ring-1 ring-neutral-300 dark:ring-neutral-700"
+                />
+              ) : (
+                <User className="h-5 w-5 text-neutral-800 dark:text-neutral-200" />
+              )}
+              {user && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-neutral-900"
+                  title="Usuário conectado"
+                />
+              )}
+            </div>
+            <span className="font-mono mt-1 text-[10px] uppercase tracking-wider truncate max-w-[80px]">
+              {user ? user.name.split(" ")[0] : "Entrar"}
+            </span>
+          </button>
+
+          {/* UserMenuPopover para Mobile com ancoragem inferior */}
+          <div className="md:hidden">
+            <UserMenuPopover
+              isOpen={isUserMenuOpen}
+              user={user}
+              placement="bottom"
+              onClose={() => setIsUserMenuOpen(false)}
+              onOpenSection={(section) => {
+                setIsUserMenuOpen(false);
+                setActiveModalSection(section);
+              }}
+              onLoginDemo={handleLoginDemo}
+              onLogout={handleLogout}
+            />
+          </div>
+        </div>
+      </nav>
 
       {/* Modal de bloqueio ao tentar fechar com sessão em andamento (RN04) */}
       <CloseConfirmModal

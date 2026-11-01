@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Pencil,
   Search,
   Trash2,
@@ -25,6 +27,7 @@ interface HistoryReportProps {
   isCloseModalOpen?: boolean;
   initialEditingSession?: StudySessionRecord | null;
   initialDeletingSession?: StudySessionRecord | null;
+  initialDetailsSession?: StudySessionRecord | null;
   onEditSession: (id: number, subject: string, topic: string) => Promise<void>;
   onDeleteSession: (id: number) => Promise<void>;
 }
@@ -43,6 +46,7 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
   isCloseModalOpen = false,
   initialEditingSession = null,
   initialDeletingSession = null,
+  initialDetailsSession = null,
   onEditSession,
   onDeleteSession,
 }) => {
@@ -50,6 +54,9 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
   const [subjectFilter, setSubjectFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [detailsSession, setDetailsSession] =
+    useState<StudySessionRecord | null>(initialDetailsSession);
 
   const [editingSession, setEditingSession] =
     useState<StudySessionRecord | null>(initialEditingSession);
@@ -69,11 +76,18 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const detailsDialogRef = useRef<HTMLDivElement | null>(null);
+  const detailsCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const editDialogRef = useRef<HTMLDivElement | null>(null);
   const editSubjectInputRef = useRef<HTMLInputElement | null>(null);
   const deleteDialogRef = useRef<HTMLDivElement | null>(null);
   const deleteCancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  useModalFocusTrap(
+    Boolean(detailsSession) && !isCloseModalOpen,
+    detailsDialogRef,
+    detailsCloseButtonRef,
+  );
   useModalFocusTrap(
     Boolean(editingSession) && !isCloseModalOpen,
     editDialogRef,
@@ -104,11 +118,17 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
   }, [subjectFilter, availableSubjects]);
 
   useEffect(() => {
-    if ((!editingSession && !deletingSession) || isCloseModalOpen) return;
+    if (
+      (!editingSession && !deletingSession && !detailsSession) ||
+      isCloseModalOpen
+    )
+      return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (deletingSession && !isDeleting) {
+      if (detailsSession) {
+        setDetailsSession(null);
+      } else if (deletingSession && !isDeleting) {
         setDeletingSession(null);
         setDeleteError(null);
       } else if (editingSession && !isSavingEdit) {
@@ -122,6 +142,7 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
+    detailsSession,
     editingSession,
     deletingSession,
     isSavingEdit,
@@ -345,39 +366,46 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
             />
           </div>
 
-          <select
-            id="history-subject-filter"
-            aria-label="Filtrar por matéria"
-            value={effectiveSubjectFilter}
-            onChange={(e) => {
-              setSubjectFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="font-sans h-8 w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs text-neutral-950 focus:border-neutral-950 focus:outline-none dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-200"
-          >
-            <option value="ALL">Todas as matérias</option>
-            {availableSubjects.map((subj) => (
-              <option key={subj} value={subj}>
-                {subj}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="history-subject-filter"
+              aria-label="Filtrar por matéria"
+              value={effectiveSubjectFilter}
+              onChange={(e) => {
+                setSubjectFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="font-sans h-8 w-full appearance-none rounded-lg border border-neutral-300 bg-neutral-50 pl-3 pr-9 text-xs text-neutral-950 cursor-pointer focus:border-neutral-950 focus:outline-none dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-200"
+            >
+              <option value="ALL">Todas as matérias</option>
+              {availableSubjects.map((subj) => (
+                <option key={subj} value={subj}>
+                  {subj}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 dark:text-neutral-400">
+              <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+            </div>
+          </div>
 
-          <input
-            id="history-date-filter"
-            type="date"
-            aria-label="Filtrar por data"
-            value={dateFilter}
-            onChange={(e) => {
-              setDateFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="tabular-clock font-mono h-8 w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs text-neutral-950 focus:border-neutral-950 focus:outline-none dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-200"
-          />
+          <div className="relative">
+            <input
+              id="history-date-filter"
+              type="date"
+              aria-label="Filtrar por data"
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="tabular-clock font-mono h-8 w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs text-neutral-950 cursor-pointer focus:border-neutral-950 focus:outline-none dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:focus:border-neutral-200"
+            />
+          </div>
         </div>
 
         {/* Resumo Consolidado do Relatório */}
-        <div className="mt-3.5 grid grid-cols-2 sm:grid-cols-6 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+        <div className="mt-3.5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
           <div className="rounded-lg border border-neutral-900 bg-neutral-900 px-2.5 py-2 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-950">
             <span className="font-mono block text-[10px] font-medium uppercase tracking-[0.04em] whitespace-nowrap opacity-80">
               Total Líquido
@@ -441,47 +469,37 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
           <>
             <div className="flex-1 overflow-x-auto overflow-y-auto">
               <table className="w-full table-fixed border-collapse text-left text-xs">
-                <colgroup>
-                  <col className="w-[110px]" />
-                  <col />
-                  <col />
-                  <col className="w-[60px]" />
-                  <col className="w-[60px]" />
-                  <col className="w-[60px]" />
-                  <col className="w-[60px]" />
-                  <col className="w-[64px]" />
-                  <col className="w-[152px]" />
-                </colgroup>
+                <colgroup></colgroup>
                 <thead className="font-mono sticky top-0 z-10 border-b border-neutral-300 bg-neutral-100 text-[10px] font-medium uppercase tracking-[0.02em] text-neutral-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400">
                   <tr>
-                    <th className="py-2.5 pl-2.5 pr-1 whitespace-nowrap">
-                      Data / Horário
+                    <th className="w-[84px] sm:w-[92px] md:w-[110px] py-2.5 pl-3 pr-1 text-left whitespace-nowrap">
+                      Data
                     </th>
-                    <th className="py-2.5 px-1.5 truncate whitespace-nowrap">
+                    <th className="py-2.5 px-2 text-left truncate whitespace-nowrap">
                       Matéria
                     </th>
-                    <th className="py-2.5 px-1.5 truncate whitespace-nowrap">
+                    <th className="hidden md:table-cell py-2.5 px-2 text-left truncate whitespace-nowrap">
                       <span className="hidden min-[880px]:inline">
                         Conteúdo /{" "}
                       </span>
                       Tópico
                     </th>
-                    <th className="py-2.5 px-1 text-right whitespace-nowrap">
+                    <th className="hidden md:table-cell md:w-[60px] py-2.5 px-1 text-right whitespace-nowrap">
                       Leit.
                     </th>
-                    <th className="py-2.5 px-1 text-right whitespace-nowrap">
+                    <th className="hidden md:table-cell md:w-[60px] py-2.5 px-1 text-right whitespace-nowrap">
                       Vídeo
                     </th>
-                    <th className="py-2.5 px-1 text-right whitespace-nowrap">
+                    <th className="hidden md:table-cell md:w-[60px] py-2.5 px-1 text-right whitespace-nowrap">
                       Rev.
                     </th>
-                    <th className="py-2.5 px-1 text-right whitespace-nowrap">
+                    <th className="hidden md:table-cell md:w-[60px] py-2.5 px-1 text-right whitespace-nowrap">
                       Quest.
                     </th>
-                    <th className="py-2.5 px-1 text-right whitespace-nowrap">
-                      Total
+                    <th className="w-[62px] md:w-[64px] py-2.5 px-1 text-right whitespace-nowrap">
+                      Tempo
                     </th>
-                    <th className="py-2.5 pl-1 pr-2.5 text-right whitespace-nowrap">
+                    <th className="w-[116px] sm:w-[124px] md:w-[210px] py-2.5 pl-1 pr-4 md:pr-6 text-right whitespace-nowrap">
                       Ações
                     </th>
                   </tr>
@@ -493,7 +511,7 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
                       data-session-id={session.id}
                       className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
                     >
-                      <td className="tabular-clock font-mono py-2.5 pl-2.5 pr-1 text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
+                      <td className="w-[84px] sm:w-[92px] md:w-[110px] tabular-clock font-mono py-2.5 pl-3 pr-1 text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1">
                             <span className="font-medium text-neutral-900 dark:text-neutral-200">
@@ -518,52 +536,62 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
                       </td>
                       <td
                         title={session.subject}
-                        className="font-sans truncate px-1.5 py-2.5 text-xs font-semibold text-neutral-950 dark:text-neutral-100"
+                        className="font-sans truncate px-2 py-2.5 text-xs font-semibold text-neutral-950 dark:text-neutral-100"
                       >
                         {session.subject}
                       </td>
                       <td
                         title={session.topic || "—"}
-                        className="font-sans truncate px-1.5 py-2.5 text-xs text-neutral-600 dark:text-neutral-400"
+                        className="hidden md:table-cell font-sans truncate px-2 py-2.5 text-xs text-neutral-600 dark:text-neutral-400"
                       >
                         {session.topic || "—"}
                       </td>
-                      <td className="tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
+                      <td className="hidden md:table-cell tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
                         {formatSeconds(session.timeReadingSec)}
                       </td>
-                      <td className="tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
+                      <td className="hidden md:table-cell tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
                         {formatSeconds(session.timeMediaSec)}
                       </td>
-                      <td className="tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
+                      <td className="hidden md:table-cell tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
                         {formatSeconds(session.timeReviewSec)}
                       </td>
-                      <td className="tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
+                      <td className="hidden md:table-cell tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] text-neutral-600 tabular-nums whitespace-nowrap dark:text-neutral-400">
                         {formatSeconds(session.timeQuestionsSec)}
                       </td>
-                      <td className="tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] font-medium text-black tabular-nums whitespace-nowrap dark:text-white">
+                      <td className="w-[62px] md:w-[64px] tabular-clock font-mono px-1 py-2.5 text-right text-[10.5px] font-medium text-black tabular-nums whitespace-nowrap dark:text-white">
                         {formatSeconds(session.totalActiveSec)}
                       </td>
-                      <td className="py-2.5 pl-1 pr-2.5 text-right whitespace-nowrap">
+                      <td className="w-[116px] sm:w-[124px] md:w-[210px] py-2.5 pl-1 pr-4 md:pr-6 text-right whitespace-nowrap">
                         <div className="inline-flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setDetailsSession(session)}
+                            aria-label={`Ver detalhes do registro de ${session.subject}`}
+                            title="Ver detalhes completos"
+                            className="font-mono inline-flex md:hidden h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md border border-neutral-300 bg-neutral-50 p-1 text-neutral-700 transition-colors hover:border-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-300 dark:hover:border-neutral-500 dark:hover:bg-neutral-800"
+                          >
+                            <Eye className="h-3.5 w-3.5 shrink-0" />
+                            <span className="sr-only">Detalhes</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => openEditModal(session)}
                             aria-label={`Editar registro de ${session.subject}`}
                             title="Editar matéria e tópico"
-                            className="font-mono inline-flex cursor-pointer items-center gap-0.5 rounded-md border border-neutral-300 bg-neutral-50 px-1.5 py-1 text-[10px] font-medium uppercase tracking-[0.02em] text-neutral-800 transition-colors hover:border-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-neutral-500 dark:hover:bg-neutral-800"
+                            className="font-mono inline-flex h-7 w-7 md:w-auto shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md border border-neutral-300 bg-neutral-50 p-1 md:px-2 md:py-1 text-[10px] font-medium uppercase tracking-[0.02em] text-neutral-800 transition-colors hover:border-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-neutral-500 dark:hover:bg-neutral-800"
                           >
-                            <Pencil className="h-3 w-3 shrink-0" />
-                            Editar
+                            <Pencil className="h-3.5 w-3.5 shrink-0" />
+                            <span className="hidden md:inline">Editar</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => openDeleteModal(session)}
                             aria-label={`Excluir registro de ${session.subject}`}
                             title="Excluir registro"
-                            className="font-mono inline-flex cursor-pointer items-center gap-0.5 rounded-md border border-neutral-300 bg-neutral-50 px-1.5 py-1 text-[10px] font-medium uppercase tracking-[0.02em] text-neutral-800 transition-colors hover:border-neutral-900 hover:bg-neutral-900 hover:text-white dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-neutral-100 dark:hover:bg-neutral-100 dark:hover:text-neutral-950"
+                            className="font-mono inline-flex h-7 w-7 md:w-auto shrink-0 cursor-pointer items-center justify-center gap-1 rounded-md border border-neutral-300 bg-neutral-50 p-1 md:px-2 md:py-1 text-[10px] font-medium uppercase tracking-[0.02em] text-neutral-800 transition-colors hover:border-neutral-900 hover:bg-neutral-900 hover:text-white dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-neutral-100 dark:hover:bg-neutral-100 dark:hover:text-neutral-950"
                           >
-                            <Trash2 className="h-3 w-3 shrink-0" />
-                            Excluir
+                            <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                            <span className="hidden md:inline">Excluir</span>
                           </button>
                         </div>
                       </td>
@@ -618,6 +646,172 @@ export const HistoryReport: React.FC<HistoryReportProps> = ({
           </>
         )}
       </section>
+
+      {/* Caixa Flutuante com Detalhes Completos da Sessão (Responsividade) */}
+      {detailsSession && (
+        <div
+          ref={detailsDialogRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal={!isCloseModalOpen}
+          aria-hidden={isCloseModalOpen ? "true" : undefined}
+          aria-labelledby="session-details-modal-title"
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs select-none dark:bg-black/75 animate-in fade-in duration-100"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDetailsSession(null);
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-neutral-300 bg-white p-5 shadow-2xl shadow-black/30 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-black/80">
+            {/* Cabeçalho */}
+            <div className="flex items-start justify-between gap-3 border-b border-neutral-200 pb-3 dark:border-neutral-800">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3
+                    id="session-details-modal-title"
+                    className="font-serif text-lg font-normal tracking-[-0.015em] text-neutral-950 dark:text-neutral-100 truncate"
+                  >
+                    Detalhes do Estudo
+                  </h3>
+                  {detailsSession.status === "RECOVERED" && (
+                    <span
+                      title="Sessão recuperada automaticamente após encerramento inesperado"
+                      className="font-mono rounded border border-neutral-400 bg-neutral-200 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-neutral-800 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200"
+                    >
+                      Recuperada
+                    </span>
+                  )}
+                </div>
+                <p className="font-mono mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+                  {formatDateBR(detailsSession.studyDate)} •{" "}
+                  {formatSessionRange(
+                    detailsSession.startTime,
+                    detailsSession.endTime,
+                  )}
+                </p>
+              </div>
+
+              <button
+                ref={detailsCloseButtonRef}
+                type="button"
+                aria-label="Fechar detalhes"
+                onClick={() => setDetailsSession(null)}
+                className="cursor-pointer rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Corpo com Informações que foram ocultadas */}
+            <div className="mt-4 space-y-3.5">
+              {/* Matéria e Tópico */}
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50/70 p-3 dark:border-neutral-800 dark:bg-neutral-950/40">
+                <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                  Matéria / Conteúdo
+                </div>
+                <div className="font-sans mt-0.5 text-sm font-semibold text-neutral-950 dark:text-neutral-100">
+                  {detailsSession.subject}
+                </div>
+                <div className="font-sans mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+                  {detailsSession.topic ? (
+                    <span>Tópico: {detailsSession.topic}</span>
+                  ) : (
+                    <span className="italic text-neutral-400 dark:text-neutral-500">
+                      Nenhum tópico informado
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tempo Total Líquido */}
+              <div className="flex items-center justify-between rounded-lg border border-neutral-900 bg-neutral-900 px-3.5 py-2.5 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-950">
+                <span className="font-mono text-xs font-medium uppercase tracking-wider">
+                  Tempo Líquido Total
+                </span>
+                <span className="tabular-clock font-mono text-base font-semibold tabular-nums">
+                  {formatSeconds(detailsSession.totalActiveSec)}
+                </span>
+              </div>
+
+              {/* Distribuição por Modalidade (Leitura, Vídeo, Revisão, Questões) */}
+              <div>
+                <span className="font-mono mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                  Tempo por Modalidade
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 dark:border-neutral-800 dark:bg-neutral-950">
+                    <span className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
+                      Leitura
+                    </span>
+                    <span className="tabular-clock font-mono text-xs font-medium text-neutral-900 dark:text-neutral-100 tabular-nums">
+                      {formatSeconds(detailsSession.timeReadingSec)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 dark:border-neutral-800 dark:bg-neutral-950">
+                    <span className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
+                      Videoaula
+                    </span>
+                    <span className="tabular-clock font-mono text-xs font-medium text-neutral-900 dark:text-neutral-100 tabular-nums">
+                      {formatSeconds(detailsSession.timeMediaSec)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 dark:border-neutral-800 dark:bg-neutral-950">
+                    <span className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
+                      Revisão
+                    </span>
+                    <span className="tabular-clock font-mono text-xs font-medium text-neutral-900 dark:text-neutral-100 tabular-nums">
+                      {formatSeconds(detailsSession.timeReviewSec)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 dark:border-neutral-800 dark:bg-neutral-950">
+                    <span className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
+                      Questões
+                    </span>
+                    <span className="tabular-clock font-mono text-xs font-medium text-neutral-900 dark:text-neutral-100 tabular-nums">
+                      {formatSeconds(detailsSession.timeQuestionsSec)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-200/80 bg-neutral-50/60 px-2.5 py-1.5 text-neutral-500 dark:border-neutral-800/80 dark:bg-neutral-950/60 dark:text-neutral-400">
+                  <span className="font-mono text-[10.5px]">
+                    Intervalos / Pausas
+                  </span>
+                  <span className="tabular-clock font-mono text-[11px] tabular-nums">
+                    {formatSeconds(detailsSession.timePausedSec)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rodapé com Ações */}
+            <div className="mt-5 flex items-center justify-end gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+              <button
+                type="button"
+                onClick={() => {
+                  const toEdit = detailsSession;
+                  setDetailsSession(null);
+                  openEditModal(toEdit);
+                }}
+                className="font-mono inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.06em] text-neutral-800 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Editar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDetailsSession(null)}
+                className="font-mono cursor-pointer rounded-lg border border-neutral-950 bg-neutral-950 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.06em] text-white transition-colors hover:bg-neutral-800 dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-neutral-200"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Edição de Matéria e Tópico */}
       {editingSession && (

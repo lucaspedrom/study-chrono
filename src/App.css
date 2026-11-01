@@ -460,6 +460,16 @@
     font-family: var(--font-sans);
   }
 
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  select::-ms-expand {
+    display: none;
+  }
+
   button {
     font-family: var(--font-mono);
   }
