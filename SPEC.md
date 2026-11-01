@@ -1,28 +1,51 @@
-# Especificação Técnica: StudyChrono (Tauri v2 + Rust + React/TS)
+# Especificação Técnica do Sistema: StudyChrono
 
-## 1. Visão Geral e Princípios Arquiteturais
-
-O **StudyChrono** é uma aplicação desktop local voltada para o rastreamento de horas líquidas e brutas de estudo, categorizadas por Matéria, Conteúdo e quatro modalidades de absorção de conhecimento: **Leitura**, **Videoaula/Podcast/Áudio**, **Revisão** e **Resolução de Questões**, além do controle de **Intervalos (Pausas)**.
-
-### Padrão Arquitetural: *Thick Rust Core + Dumb Reactive UI*
-
-Para garantir precisão temporal absoluta e explorar os recursos nativos do Rust:
-
-1. **Rust (Backend Core):** É a única fonte da verdade (*Single Source of Truth*). Gerencia a máquina de estados, calcula os deltas de tempo usando relógio monotônico (`std::time::Instant`), persiste dados transacionais no SQLite e intercepta sinais de fechamento da janela do sistema operacional.
-2. **React + TypeScript (Frontend UI):** Atua exclusivamente como camada de apresentação e disparo de intenções do usuário. **Não** executa cálculos de acumulação de tempo via `setInterval` para fins de registro; apenas renderiza o estado calculado pelo Rust.
+| Metadado | Detalhe |
+| :--- | :--- |
+| **Versão da Especificação** | 2.0.0 (Living Architecture Specification) |
+| **Status do Projeto** | Produção / Estável |
+| **Arquitetura** | Dual-Engine: Desktop Nativo (Tauri v2 + Rust) & Web SPA (TypeScript WebTracker) |
+| **Licença** | MIT |
 
 ---
 
-## 2. Stack Tecnológica e Dependências
+## 1. Visão Geral e Princípios Arquiteturais
 
-| Camada | Tecnologia / Biblioteca | Papel no Sistema |
-| --- | --- | --- |
-| **Framework Desktop** | **Tauri v2** | Ponte IPC, gerenciamento de janela nativa e empacotamento em binário único. |
-| **Linguagem Backend** | **Rust (Edition 2021)** | Lógica de domínio, máquina de estados e segurança de memória. |
-| **Banco de Dados** | **SQLite (`rusqlite` c/ feature `bundled`)** | Persistência local em arquivo único (`study_chrono.db`), sem depender de SQLite pré-instalado no SO. |
-| **Serialização & Datas** | **`serde`, `serde_json`, `chrono**` | Troca de dados tipados entre Rust e TS e geração de timestamps ISO-8601 locais. |
-| **Linguagem Frontend** | **TypeScript + React 18+ (Vite)** | Componentização visual com tipagem estática estrita. |
-| **Estilização & Ícones** | **Tailwind CSS + `lucide-react**` | Interface escura (*Dark Mode* nativo para foco), limpa e responsiva. |
+O **StudyChrono** é uma aplicação de alta precisão dedicada ao rastreamento e segmentação de horas líquidas e brutas de estudo. Diferente de cronômetros genéricos ou temporizadores Pomodoro convencionais, o sistema divide o tempo investido em **quatro modalidades cognitivas de estudo** além do controle rigoroso de **intervalos (pausas)**:
+
+1. 📖 **Leitura** (PDFs, livros, doutrina, legislação, apostilas)
+2. 🎧 **Videoaula / Áudio** (Aulas gravadas, podcasts, transmissões ao vivo)
+3. 🔄 **Revisão** (Flashcards Anki, mapas mentais, resumos pessoais, fichamentos)
+4. ✍️ **Resolução de Questões** (Baterias de exercícios, simulados, provas anteriores)
+5. ⏸️ **Intervalos / Pausas** (Descanso controlado sem poluir o tempo líquido)
+
+### Princípios de Engenharia
+
+* **Zero-Drift & Precisão Absoluta:** O cálculo de tempo é imune à latência de loops de eventos, desvio de temporizadores JavaScript (`setInterval`) ou congelamento de abas em segundo plano (*background throttling* em navegadores modernos).
+* **Dual-Engine Architecture (Motor Dual):**
+  - **No Desktop:** Opera sob o padrão *Thick Rust Core + Dumb Reactive UI*, onde o Rust é a única fonte da verdade (*Single Source of Truth*) via `std::time::Instant` e SQLite embutido.
+  - **Na Web / Mobile:** Opera sob o motor *WebTracker*, utilizando diferencial de timestamps absolutos (`Date.now()`), persistência reativa em `localStorage` e suporte a sincronização via Google Drive API.
+* **Local-First & Privacidade por Padrão:** Não requer cadastro prévio para uso imediato (Modo Visitante). Todos os dados residem localmente na máquina do usuário, com opções de backup e sincronização sob demanda.
+* **Design Editorial Minimalista:** Visor de cronometragem 100% focado na sessão ativa, tipografia editorial balanceada (três famílias de fontes complementares), paleta monocromática com uso restrito de cor apenas para semântica de controle (Play, Pause, Stop).
+
+---
+
+## 2. Stack Tecnológica Detalhada
+
+| Camada | Tecnologia / Biblioteca | Versão | Papel e Justificativa no Sistema |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | **React** | 19.x | Componentização reativa de alto desempenho e sincronização de estado. |
+| **Linguagem Frontend** | **TypeScript** | 6.x | Tipagem estática estrita em todos os modelos de dados e serviços. |
+| **Build Tool & Bundler** | **Vite** | 8.x | Compilação ultrarrápida, Hot Module Replacement e geração de chunks otimizados. |
+| **Estilização** | **Tailwind CSS** | 4.x | Utilitários CSS de alto desempenho, suporte nativo a `@custom-variant dark`. |
+| **Ícones** | **Lucide React** | 1.6x | Conjunto consistente de ícones vetoriais leves. |
+| **Tipografia Offline** | **Fontsource Variable** | 5.3x | Fontes variáveis empacotadas no binário/dist (*Newsreader*, *Inter*, *Roboto Mono*). |
+| **Desktop Shell** | **Tauri** | 2.x | Ponte IPC segura, consumo mínimo de memória e empacotamento nativo. |
+| **Desktop Backend** | **Rust** | Edição 2024 | Lógica de domínio, máquina de estados monotônica e segurança de concorrência. |
+| **Banco Desktop** | **SQLite (`rusqlite`)** | 0.32 (bundled) | Banco relacional embarcado no binário único, dispensando drivers externos. |
+| **Web Engine** | **TypeScript WebTracker** | Nativo | Motor temporal para Web SPA baseado em diferencial de timestamps absolutos. |
+| **Containerização** | **Docker + Nginx Alpine** | Node 22 / Nginx | Multi-stage build com cabeçalhos de segurança, Gzip e suporte a Cloud Run. |
+| **Suíte de Testes** | **Node.js Test Runner** | 20+ | Testes unitários rápidos (`npm test`) e responsividade móvel (`npm run test:responsive`). |
 
 ---
 
@@ -30,276 +53,306 @@ Para garantir precisão temporal absoluta e explorar os recursos nativos do Rust
 
 ```text
 study-chrono/
-├── src/                          # Frontend (React + TypeScript)
-│   ├── components/
-│   │   ├── SubjectInput.tsx      # Input de Matéria (c/ Autocomplete) e Conteúdo
-│   │   ├── TimerDisplay.tsx      # Visor principal (Tempo Líquido Total + Modalidade Atual)
-│   │   ├── ModalityGrid.tsx      # 4 botões de modalidade com contadores individuais
-│   │   ├── ControlBar.tsx        # Botões de Pausar/Retomar e Parar (Finalizar)
-│   │   ├── DailyHistory.tsx      # Tabela compacta com sessões registradas hoje + Totais
-│   │   └── CloseConfirmModal.tsx # Modal de bloqueio ao tentar fechar com sessão ativa
-│   ├── types/
-│   │   └── session.ts            # Interfaces TypeScript espelhadas das Structs Rust
+├── public/                         # Ativos públicos e ícones estáticos
+├── src/                            # Camada Frontend (React + TypeScript)
+│   ├── assets/                     # SVGs e imagens auxiliares
+│   ├── components/                 # Componentes de interface modulares
+│   │   ├── CloseConfirmModal.tsx   # Modal de proteção contra fechamento com sessão ativa
+│   │   ├── ControlBar.tsx          # Ações principais: Iniciar, Pausar/Retomar e Finalizar
+│   │   ├── HistoryReport.tsx       # Aba dedicada de histórico, filtros, paginação e edição
+│   │   ├── ModalityGrid.tsx        # Grade das 4 modalidades de estudo com contadores
+│   │   ├── SubjectInput.tsx        # Entradas de Matéria (autocomplete inteligente) e Tópico
+│   │   ├── TimerDisplay.tsx        # Visor principal com décimos discretos (.0 a .9)
+│   │   ├── UserMenuPopover.tsx     # Menu flutuante de ações rápidas da conta
+│   │   └── UserProfileModal.tsx    # Modal de perfil, login Google, nuvem e backup JSON
+│   ├── config/
+│   │   └── googleAuth.ts           # Configurações do Google OAuth 2.0 Client ID
 │   ├── services/
-│   │   └── tauriApi.ts           # Wrappers tipados para invoke() e listen() do Tauri
-│   ├── App.tsx                   # Orquestração da tela principal e listeners de eventos
-│   └── main.tsx
-├── src-tauri/                    # Backend (Rust)
+│   │   ├── authService.ts          # Gestão de identidades (Visitante, Demo e Google)
+│   │   ├── googleDriveService.ts   # Sincronização em nuvem via Google Drive REST API
+│   │   ├── tauriApi.ts             # Fachada de abstração unificada (Tauri IPC vs WebTracker)
+│   │   └── webTracker.ts           # Motor de contagem temporal para navegador e LocalStorage
+│   ├── types/
+│   │   └── session.ts              # Contratos tipados: Modality, Snapshot, Records, UserProfile
+│   ├── utils/
+│   │   ├── formatTime.ts           # Utilitários de formatação de horas, minutos e décimos
+│   │   └── useModalFocusTrap.ts    # Hook de acessibilidade para retenção de foco em modais
+│   ├── App.tsx                     # Orquestrador principal, estado global e layout responsivo
+│   ├── App.css                     # Importação Tailwind v4 e fontes @font-face offline
+│   └── main.tsx                    # Bootstrap da aplicação React
+├── src-tauri/                      # Camada Backend Desktop (Rust)
 │   ├── src/
-│   │   ├── main.rs               # Ponto de entrada
-│   │   ├── lib.rs                # Configuração do Tauri, registro de Commands e Window Events
-│   │   ├── domain.rs             # Enums (Modality, SessionStatus) e Structs da Máquina de Estados
-│   │   ├── timer.rs              # Lógica de cálculo de tempo com Instant e Duration
-│   │   ├── db.rs                 # Inicialização do SQLite e queries CRUD
-│   │   └── commands.rs           # Funções #[tauri::command] expostas ao Frontend
-│   ├── Cargo.toml                # Dependências do Rust
-│   └── tauri.conf.json           # Configurações de janela e permissões do Tauri
-└── SPEC.md                       # Documento de especificação do sistema
-
+│   │   ├── commands.rs             # Endpoints IPC tipados (#[tauri::command])
+│   │   ├── db.rs                   # Inicialização do SQLite, migrações e rotina de Crash Recovery
+│   │   ├── domain.rs               # Enums (Modality, TrackerState) e structs de domínio
+│   │   ├── lib.rs                  # Inicialização do runtime Tauri e interceptação de janela
+│   │   ├── main.rs                 # Ponto de entrada do executável Desktop
+│   │   └── timer.rs                # Motor monotônico com Instant e Duration em nanossegundos
+│   ├── Cargo.toml                  # Dependências Rust e otimizações de compilação LTO
+│   └── tauri.conf.json             # Configuração da janela nativa, permissões e ícones
+├── tests/                          # Suíte de testes automatizados
+│   ├── frontend.test.mts           # Testes unitários da lógica Web, formatação e recuperação
+│   ├── responsive-usability.test.mts # Testes de layout adaptativo móvel e acessibilidade
+│   └── e2e-binary.test.mts         # Testes ponta-a-ponta via Chrome DevTools Protocol
+├── Dockerfile                      # Build multi-stage para deploy em contêineres web
+├── nginx.conf                      # Servidor Nginx com Security Headers e compressão Gzip
+├── SPEC.md                         # Este documento de especificação técnica
+└── README.md                       # Documentação e guia rápido do projeto
 ```
 
 ---
 
-## 4. Modelagem do Banco de Dados (SQLite)
+## 4. Modelagem de Dados e Esquemas de Persistência
 
-O arquivo `study_chrono.db` deve ser criado automaticamente no diretório de dados da aplicação (`app_data_dir` do Tauri) durante a inicialização do Rust (`setup` hook).
+### 4.1. Esquema Relacional Desktop (SQLite)
 
-### DDL: Tabela `study_sessions`
+O banco `study_chrono.db` é criado automaticamente no diretório de dados do usuário (`app_data_dir`) pelo hook `setup` do Tauri:
 
 ```sql
 CREATE TABLE IF NOT EXISTS study_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    study_date TEXT NOT NULL,            -- Formato YYYY-MM-DD (Data local do início)
-    start_time TEXT NOT NULL,            -- ISO-8601 (Ex: 2026-10-28T17:00:00-03:00)
-    end_time TEXT,                       -- ISO-8601 (Preenchido ao finalizar)
-    subject TEXT NOT NULL,               -- Nome da Matéria (higienizado com trim)
-    topic TEXT NOT NULL DEFAULT '',      -- Conteúdo / Tópico estudado
-    time_reading_sec INTEGER NOT NULL DEFAULT 0,   -- Segundos em Leitura
-    time_media_sec INTEGER NOT NULL DEFAULT 0,     -- Segundos em Videoaula/Podcast/Áudio
-    time_review_sec INTEGER NOT NULL DEFAULT 0,    -- Segundos em Revisão
-    time_questions_sec INTEGER NOT NULL DEFAULT 0, -- Segundos em Resolução de Questões
-    time_paused_sec INTEGER NOT NULL DEFAULT 0,    -- Segundos em Pausas/Intervalos
-    total_active_sec INTEGER NOT NULL DEFAULT 0,   -- Soma exata das 4 modalidades ativas
+    study_date TEXT NOT NULL,            -- Formato local YYYY-MM-DD
+    start_time TEXT NOT NULL,            -- Timestamp ISO-8601 (ex: 2026-11-01T14:30:00-03:00)
+    end_time TEXT,                       -- Timestamp ISO-8601 de encerramento
+    subject TEXT NOT NULL,               -- Nome da matéria (higienizada com trim)
+    topic TEXT NOT NULL DEFAULT '',      -- Conteúdo ou assunto detalhado
+    time_reading_sec INTEGER NOT NULL DEFAULT 0,   -- Tempo em Leitura (segundos)
+    time_media_sec INTEGER NOT NULL DEFAULT 0,     -- Tempo em Videoaula/Áudio (segundos)
+    time_review_sec INTEGER NOT NULL DEFAULT 0,    -- Tempo em Revisão (segundos)
+    time_questions_sec INTEGER NOT NULL DEFAULT 0, -- Tempo em Questões (segundos)
+    time_paused_sec INTEGER NOT NULL DEFAULT 0,    -- Tempo em Intervalos/Pausas (segundos)
+    total_active_sec INTEGER NOT NULL DEFAULT 0,   -- Soma das 4 modalidades ativas
     status TEXT NOT NULL DEFAULT 'IN_PROGRESS'     -- 'IN_PROGRESS' | 'COMPLETED' | 'RECOVERED'
 );
 
 CREATE INDEX IF NOT EXISTS idx_study_sessions_date ON study_sessions(study_date);
 CREATE INDEX IF NOT EXISTS idx_study_sessions_subject ON study_sessions(subject);
-
 ```
 
-### Queries Essenciais (`db.rs`)
+### 4.2. Esquema Web Storage (`localStorage`)
 
-1. **Autocomplete de Matérias:** `SELECT DISTINCT subject FROM study_sessions WHERE subject != '' ORDER BY subject ASC;`
-2. **Histórico do Dia:** `SELECT * FROM study_sessions WHERE study_date = ?1 AND status != 'IN_PROGRESS' ORDER BY start_time DESC;`
-3. **Checkpoint de Sessão Ativa:** Atualiza os tempos acumulados e `subject`/`topic` no registro `IN_PROGRESS` a cada troca de modalidade ou pausa.
+No ambiente Web, o sistema persiste os dados em chaves isoladas no navegador:
+
+| Chave de Armazenamento | Tipo de Dado | Finalidade |
+| :--- | :--- | :--- |
+| `study_chrono_active_session` | `ActiveSessionData` (JSON) | Estado instantâneo da sessão ativa, acumuladores em ms e timestamps de fatia. |
+| `study_chrono_history` | `StudySessionRecord[]` (JSON) | Lista histórica de sessões concluídas ou recuperadas. |
+| `study_chrono_subjects` | `string[]` (JSON) | Lista canônica de matérias cadastradas para o autocomplete inteligente. |
+| `study_chrono_theme` | `"light" \| "dark"` | Modo visual preferido pelo usuário. |
+| `study_chrono_user` | `UserProfile` (JSON) | Perfil atual (`guest`, `demo` ou `google`), nome, e-mail e avatar. |
+| `study_chrono_storage_mode` | `"local" \| "drive"` | Destino preferencial de sincronização e persistência. |
+| `study_chrono_google_client_id` | `string` | Client ID personalizado para OAuth do Google. |
+| `study_chrono_last_drive_sync` | `string` (ISO-8601) | Timestamp do último backup concluído com o Google Drive. |
 
 ---
 
-## 5. Especificação do Domínio e Máquina de Estados (Rust)
+## 5. Motor de Precisão Temporal & Máquina de Estados
 
-### Prevenção de Perda de Frações de Segundo (*Sub-second Precision*)
+### 5.1. Estados da Sessão (`TrackerStatus`)
 
-Se o usuário alternar entre modalidades rapidamente (ex: aos `2.8` segundos), truncar para segundos inteiros a cada troca causaria perda de tempo real.
+O ciclo de vida da contagem segue o autômato finito de três estados:
 
-* **Regra de Implementação:** Em memória (`timer.rs`), todo o tempo acumulado deve ser armazenado em `std::time::Duration` (precisão de nanossegundos/milissegundos). A conversão para segundos inteiros (`as_secs()`) ocorre apenas na serialização para exibição e na gravação para o SQLite.
-
-### Estruturas de Domínio (`domain.rs`)
-
-```rust
-use serde::{Deserialize, Serialize};
-use std::time::{Duration, Instant};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Modality {
-    Reading,   // Leitura
-    Media,     // Videoaula / Podcast / Áudio
-    Review,    // Revisão
-    Questions, // Resolução de Questões
-}
-
-#[derive(Debug, Clone)]
-pub enum TrackerState {
-    Idle,
-    Running {
-        active_modality: Modality,
-        slice_started_at: Instant,
-    },
-    Paused {
-        last_modality: Modality,
-        pause_started_at: Instant,
-    },
-}
-
-pub struct ActiveSession {
-    pub db_id: i64,
-    pub study_date: String,
-    pub start_time: String,
-    pub subject: String,
-    pub topic: String,
-    pub reading_acc: Duration,
-    pub media_acc: Duration,
-    pub review_acc: Duration,
-    pub questions_acc: Duration,
-    pub paused_acc: Duration,
-    pub state: TrackerState,
-}
-
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: Inicialização
+    Idle --> Running: Iniciar modalidade (RN01)
+    Running --> Running: Trocar modalidade / Hot-Swap (RN03)
+    Running --> Paused: Pausar sessão
+    Paused --> Running: Retomar (na mesma ou em nova modalidade)
+    Running --> Idle: Finalizar estudo (Stop)
+    Paused --> Idle: Finalizar estudo (Stop)
+    Running --> [*]: Interceptação / Crash
+    note right of Running: Checkpoint a cada 1 segundo
 ```
 
-### DTO de Snapshot para o Frontend (`SessionSnapshot`)
+1. **`Idle` (Inativo):** Nenhuma contagem em andamento. O visor exibe `00:00:00.0`. Os botões de modalidade atuam como gatilho de início imediato.
+2. **`Running` (Executando):** Há uma modalidade ativa acumulando tempo. O relógio principal avança em tempo real e calcula os décimos discretos (`.0` a `.9`). Checkpoints são gravados a cada segundo.
+3. **`Paused` (Pausado):** A contagem líquida é congelada. O acumulador de pausas passa a registrar a duração do intervalo. O visor principal muda para o tom âmbar e sinaliza o estado de pausa.
 
-Como `std::time::Instant` não é serializável para JSON, o Rust expõe uma `struct` limpa que já entrega os segundos calculados em tempo real no momento da consulta:
+### 5.2. Prevenção de Perdas Sub-segundo (*Sub-second Precision*)
 
-```rust
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionSnapshot {
-    pub status: String,                  // "idle" | "running" | "paused"
-    pub active_modality: Option<Modality>,
-    pub subject: String,
-    pub topic: String,
-    pub reading_sec: u64,
-    pub media_sec: u64,
-    pub review_sec: u64,
-    pub questions_sec: u64,
-    pub paused_sec: u64,
-    pub total_active_sec: u64,           // Soma das 4 modalidades
-    pub current_slice_sec: u64,          // Tempo decorrido na modalidade/pausa atual
-}
+Para evitar que trocas rápidas de modalidade (ex: transição aos `3.7` segundos) causem truncamento de tempo real:
+* **No Rust (`timer.rs`):** Todos os acumuladores internos são armazenados em `std::time::Duration` com precisão de nanossegundos. A conversão para segundos inteiros ocorre somente na exportação e persistência.
+* **No WebTracker (`webTracker.ts`):** Todos os acumuladores (`readingMs`, `mediaMs`, etc.) e fatias parciais utilizam milissegundos absolutos baseados em `Date.now()`.
 
-```
+### 5.3. Imunidade à Suspensão de Abas (*Background Tab Throttling*)
+
+Navegadores modernos reduzem a frequência de execução de `setInterval` para até 1 vez por minuto em abas inativas. Para contornar esse comportamento:
+* O cronômetro **nunca soma deltas arbitrários por tick de timer**.
+* A cada ciclo de renderização, o tempo decorrido da fatia ativa é calculado exclusivamente pela fórmula:
+  $$\Delta t = \text{Date.now()} - \text{sliceStartTime}$$
+  $$\text{tempo\_total} = \text{acumulador\_anterior} + \Delta t$$
+* Mesmo que o navegador congele o loop de renderização durante uma hora de estudo com a aba minimizada, ao reativar a aba o cálculo por diferencial de relógio do sistema apresentará o tempo exato decorrido.
 
 ---
 
-## 6. Contrato de Comunicação IPC (Commands & Events)
-
-Para manter o código Rust didático (evitando lidar com *threads* assíncronas complexas logo no início), o gerenciamento de estado usará `tauri::State<'_, Mutex<AppState>>`, e o Frontend fará *polling* leve de `get_session_snapshot` a cada `200ms` apenas quando o status for diferente de `idle`.
-
-### Comandos Tauri (`commands.rs`)
-
-| Comando (`#[tauri::command]`) | Parâmetros | Retorno | Comportamento no Rust |
-| --- | --- | --- | --- |
-| `get_session_snapshot` | Nenhum | `Result<SessionSnapshot, String>` | Calcula `Instant::now() - slice_started_at`, soma ao acumulador da modalidade ativa em memória (sem mutar a fatia) e retorna o snapshot atualizado. |
-| `start_or_switch_modality` | `modality: Modality`, `subject: String`, `topic: String` | `Result<SessionSnapshot, String>` | **Se `Idle`:** Valida se `subject` não está vazio, cria linha `IN_PROGRESS` no SQLite e inicia `Running`. **Se `Running`:** Consolida o delta na modalidade anterior, faz checkpoint no SQLite e inicia nova fatia na nova `modality`. **Se `Paused`:** Consolida delta em `paused_acc` e retoma na `modality` clicada. |
-| `toggle_pause` | Nenhum | `Result<SessionSnapshot, String>` | **Se `Running`:** Consolida delta da modalidade ativa, faz checkpoint no SQLite e muda estado para `Paused`. **Se `Paused`:** Consolida delta de pausa e retoma em `Running` usando `last_modality`. |
-| `update_session_metadata` | `subject: String`, `topic: String` | `Result<(), String>` | Atualiza `subject` e `topic` na sessão em memória e executa `UPDATE` imediato na linha `IN_PROGRESS` do SQLite. |
-| `stop_session` | Nenhum | `Result< DailySummary, String>` | Consolida a última fatia de tempo (ativa ou pausada), preenche `end_time`, atualiza `status = 'COMPLETED'` no SQLite, reseta memória para `Idle` e retorna o histórico do dia atualizado. |
-| `get_initial_data` | Nenhum | `Result<InitialData, String>` | Retorna lista de matérias distintas (para o autocomplete), o histórico de sessões do dia atual e eventual sessão recuperada. |
-| `confirm_close_and_exit` | `app_handle: AppHandle` | `Result<(), String>` | Executa a mesma rotina de consolidação do `stop_session` e chama `app_handle.exit(0)` para encerrar o processo com segurança. |
-
----
-
-## 7. Regras de Negócio e Fluxos Críticos
+## 6. Regras de Negócio Oficiais
 
 ### RN01 — Início Rápido pela Modalidade
+* Com o sistema em `Idle`, o usuário não necessita clicar em um botão preliminar de "Iniciar".
+* Ao preencher a **Matéria** e clicar diretamente em qualquer um dos 4 botões de modalidade (**Leitura**, **Videoaula**, **Revisão** ou **Questões**), a sessão é iniciada imediatamente naquela modalidade.
+* Caso a matéria esteja vazia, o sistema assume automaticamente a denominação padrão **"Estudo Livre"**, garantindo que o usuário nunca seja impedido de iniciar seus estudos de imediato.
 
-* O usuário não precisa clicar em um botão "Iniciar" genérico e depois escolher a modalidade.
-* Com a sessão em `Idle`, basta preencher a **Matéria** (obrigatória; se estiver vazia, exibir feedback visual na caixa de texto) e clicar diretamente em qualquer um dos 4 botões (**Leitura**, **Videoaula/Áudio**, **Revisão** ou **Questões**) para disparar o cronômetro geral e o da modalidade escolhida simultaneamente.
-
-### RN02 — Edição Dinâmica Durante o Estudo
-
-* Os campos **Matéria** e **Conteúdo** permanecem habilitados durante toda a sessão (`Running` ou `Paused`).
-* Ao editar qualquer um dos dois campos (evento `onBlur` ou *debounce* de `500ms`), o frontend invoca `update_session_metadata(subject, topic)` para garantir que o banco já reflita o texto corrigido.
+### RN02 — Edição Dinâmica de Metadados em Tempo Real
+* Os campos de **Matéria** e **Conteúdo / Tópico** permanecem editáveis durante a execução (`Running`) e durante a pausa (`Paused`).
+* Alterações no texto disparam atualizações automáticas via *debounce* e no evento `onBlur`, sincronizando a sessão em andamento com o banco de dados sem reiniciar ou pausar os contadores.
 
 ### RN03 — Troca Quente de Modalidade (*Hot-Swap*)
+* Clicar no botão da modalidade que já está em execução é uma operação idempotente (mantém a execução contínua).
+* Clicar em uma modalidade diferente transfere instantaneamente a contagem ativa para a nova modalidade, consolidando a fatia anterior no acumulador sem perder frações de segundo e sem interromper o tempo líquido total.
+* Estando o cronômetro **Pausado**, clicar diretamente em qualquer modalidade encerra a pausa automaticamente e retoma o cronômetro na modalidade selecionada.
 
-* Clicar no botão da modalidade que **já está ativa** não faz nada (botão permanece destacado como ativo).
-* Clicar em outra modalidade enquanto o cronômetro roda transfere a contagem instantaneamente para a nova modalidade, sem pausar o tempo líquido total.
-* Se o cronômetro estiver **Pausado**, clicar diretamente em qualquer uma das 4 modalidades encerra a pausa automaticamente e já retoma o estudo contabilizando naquela modalidade escolhida.
+### RN04 — Interceptação Nativa de Fechamento da Janela
+* **No Desktop (Tauri):** O evento `WindowEvent::CloseRequested` é interceptado. Se houver sessão em `Running` ou `Paused`, o fechamento é bloqueado (`api.prevent_close()`) e o modal `CloseConfirmModal` é exibido, permitindo:
+  - *Continuar Estudando:* Fecha o modal e mantém a sessão rodando normalmente.
+  - *Encerrar, Salvar e Sair:* Consolida o tempo decorrido no banco SQLite e finaliza o processo do aplicativo de forma limpa.
+* **Na Web:** O evento `beforeunload` exibe o diálogo nativo de proteção do navegador, enquanto grava um checkpoint síncrono da sessão.
 
-### RN04 — Interceptação de Fechamento da Janela (Proteção contra Perda)
+### RN05 — Auto-Recuperação de Queda (*Crash Recovery*)
+* Se o computador ou a aba do navegador for encerrada inesperadamente (ex: queda de energia ou fechamento forçado):
+  - Na próxima inicialização, o sistema identifica sessões com status `IN_PROGRESS`.
+  - O status é automaticamente atualizado para `RECOVERED` ("Encerramento inesperado") com a data de término igual ao último checkpoint salvo.
+  - A sessão recuperada é incorporada ao histórico, preservando integralmente o tempo estudado.
 
-No arquivo `lib.rs`, o evento nativo da janela deve ser interceptado:
+### RN06 — Modo Visitante Zero-Friction e Autenticação Google
+* O usuário pode utilizar o StudyChrono de imediato no modo visitante, sem qualquer tipo de login ou autorização prévia.
+* A qualquer momento, é possível alternar para um perfil de demonstração (*Demo User*) ou realizar login oficial via Google OAuth 2.0 (Identity Services) para associar seu histórico a uma conta pessoal.
 
-1. O usuário clica no **"X"** da janela (ou pressiona `Alt+F4`).
-2. O hook `on_window_event` captura `WindowEvent::CloseRequested { api, .. }`.
-3. O Rust verifica o `Mutex<AppState>`:
-* Se `TrackerState::Idle`: Não faz nada; a janela fecha imediatamente.
-* Se `Running` ou `Paused`: Chama `api.prevent_close()` e emite o evento `window.emit("close-requested", ())` para o React.
+### RN07 — Armazenamento Local e Sincronização Google Drive
+* O usuário escolhe entre manter seus dados puramente locais (*Armazenamento Local*) ou sincronizá-los com o seu Google Drive pessoal (*Google Drive*).
+* A sincronização com o Google Drive utiliza a pasta de dados da aplicação (`drive.file` / `appDataFolder`), salvando o arquivo `study-chrono-backup.json` sem acessar quaisquer outros arquivos pessoais do usuário.
 
+### RN08 — Portabilidade e Backup Total (JSON Import/Export)
+* O sistema fornece exportação completa do banco de dados/histórico em formato JSON estruturado contendo versão do esquema, perfil, matérias e histórico de sessões.
+* A importação de arquivos JSON realiza mesclagem inteligente e deduplicação de registros por timestamp e identificador.
 
-4. O React escuta `"close-requested"` e exibe o modal `CloseConfirmModal`:
-* *"Você possui uma sessão de estudo em andamento. Deseja encerrar e registrar o tempo estudado até agora antes de sair?"*
-* **Botão "Continuar Estudando":** Apenas fecha o modal; o cronômetro nunca parou de rodar nos bastidores.
-* **Botão "Encerrar, Salvar e Sair":** Invoca o comando `confirm_close_and_exit`, que finaliza a sessão no SQLite e fecha o aplicativo.
+### RN09 — Relatório de Histórico Isolado com Paginação e Ações Seguras
+* A visualização de histórico reside em uma aba dedicada (`history`), mantendo a tela do cronômetro (`timer`) 100% livre de distrações durante os estudos.
+* A aba de histórico oferece:
+  - Paginação automática com seletor de itens por página.
+  - Filtros combinados por matéria, período de datas e busca por texto no tópico.
+  - Totais consolidados em cartões destacados por modalidade.
+  - Edição em linha de matéria e tópico de sessões passadas.
+  - Exclusão com confirmação em pop-up de segurança.
 
-
-
-### RN05 — Auto-Recuperação de Queda de Energia (*Crash Recovery*)
-
-* Como toda troca de modalidade ou pausa atualiza a linha `IN_PROGRESS` no SQLite, se o computador desligar abruptamente, na próxima abertura do programa a função de inicialização do banco verificará se existe algum registro com `status = 'IN_PROGRESS'`.
-* Caso exista e `total_active_sec > 0`, o Rust altera automaticamente seu status para `'RECOVERED'`, define `end_time` com o último checkpoint conhecido e o inclui no histórico, evitando perda de horas estudadas.
+### RN10 — Interface Responsiva e Navegação Adaptativa
+* **Desktop:** Cabeçalho unificado com altura padrão `h-8`, abas de navegação centralizadas (*Cronômetro* e *Histórico*), alternância de tema Claro/Escuro e menu do usuário à direita.
+* **Mobile / Telas Estreitas:** Cabeçalho compacto com marca centralizada e alternador de tema; navegação principal movida para uma barra inferior fixa (*Bottom Navigation Bar*), com padding de segurança inferior no corpo da página para evitar sobreposição de controles.
 
 ---
 
-## 8. Especificação de Interface (Wireframe & Layout em Tailwind)
+## 7. Design System & Especificações Editorial/UX
 
-A janela deve ter dimensões iniciais sugeridas de **`900x720`** (mínimo `760x640`), com tema escuro (`bg-slate-950 text-slate-100`) para conforto visual durante longas horas de estudo.
+### 7.1. Sistema Tipográfico Tríplice
+
+O design adota uma hierarquia tipográfica precisa, suportada por fontes variáveis empacotadas localmente para funcionamento 100% offline:
 
 ```text
-+-----------------------------------------------------------------------+
-|  StudyChrono                                              [_] [□] [X] |
-+-----------------------------------------------------------------------+
-|  MATÉRIA (Autocomplete)          CONTEÚDO / TÓPICO                    |
-|  [ Direito Constitucional   v ]  [ Controle de Constitucionalidade  ] |
-+-----------------------------------------------------------------------+
-|                                                                       |
-|                       TEMPO LÍQUIDO DE ESTUDO                         |
-|                           01 : 42 : 18                                |
-|                Status: EM ANDAMENTO (Modalidade: Leitura)             |
-|                Tempo em Intervalos/Pausas: 00:12:05                   |
-|                                                                       |
-+-----------------------------------------------------------------------+
-|  SELECIONE A MODALIDADE ATIVA (Clique para iniciar ou alternar)       |
-|  +-----------------+ +-----------------+ +--------+ +---------------+ |
-|  | [●] LEITURA     | | [ ] VIDEOAULA   | | [ ]REV.| | [ ] QUESTÕES  | |
-|  |    00:55:10     | |    00:32:08     | | 00:00  | |   00:15:00    | |
-|  +-----------------+ +-----------------+ +--------+ +---------------+ |
-|                                                                       |
-|             [ ⏸ PAUSAR SESSÃO ]        [ ⏹ FINALIZAR ESTUDO ]         |
-+-----------------------------------------------------------------------+
-|  HISTÓRICO DE HOJE (28/10/2026)               Total Líquido: 03:12:00 |
-|  -------------------------------------------------------------------  |
-|  Início-Fim | Matéria | Conteúdo | Leit.| Vídeo| Rev. | Quest.| Total |
-|  14:00-15:30| RLM     | Lógica   | 00:20| 00:40| 00:00| 00:30 | 01:30 |
-+-----------------------------------------------------------------------+
+[ Serif Editorial: Romana-Book / Newsreader ]
+└── Títulos, Identidade Visual (StudyChrono) e Cabeçalhos de Seção
 
+[ Mono Técnico: Akkurat-Mono / Roboto Mono ]
+└── Visor Numérico Principal (00:00:00.0), Badges de Status, Rótulos de Tempo
+
+[ Sans Neutra: AkkuratPro-Regular / Inter ]
+└── Rótulos de Formulários, Textos de Ajuda, Botões, Tabelas e Menus
 ```
 
-### Estados Visuais das Modalidades
+### 7.2. Paleta Monocromática e Semântica de Cores
 
-* **Modalidade Ativa (`Running`):** Borda iluminada (`border-emerald-500 bg-emerald-950/30`), ícone pulsante e contador em destaque.
-* **Modalidade Inativa (com tempo acumulado):** Borda neutra (`border-slate-800 bg-slate-900`), exibindo o tempo já acumulado naquela sessão.
-* **Estado Pausado (`Paused`):** O visor principal muda a cor de destaque para âmbar (`text-amber-400`), exibe o badge `"PAUSADO"` e o contador de *Tempo em Intervalos/Pausas* passa a incrementar em tempo real.
+Para garantir máxima concentração durante longas sessões de estudo, 95% da interface é estritamente monocromática. As cores são aplicadas como exceção com forte valor semântico funcional:
+
+* **Verde Esmeralda (`emerald-500`):** Exclusivo para o ícone e estado ativo de **Play / Em Andamento**.
+* **Âmbar (`amber-400`):** Exclusivo para o ícone e estado de **Pausa / Intervalo**.
+* **Vermelho / Rosa (`rose-500` / `red-500`):** Exclusivo para o ícone de **Parar / Finalizar Estudo** e ações destrutivas de exclusão.
+* **Temas Claro e Escuro:** Suporte a contraste estrito (`bg-white / text-neutral-900` no modo claro; `bg-neutral-950 / text-neutral-100` no modo escuro).
 
 ---
 
-## 9. Roteiro de Implementação (Passo a Passo para o Agente)
+## 8. Contratos de Interface e Serviços (APIs)
 
-Para construir o projeto sem erros de compilação e facilitar seu acompanhamento do código gerado, peça ao seu agente desenvolvedor para seguir esta ordem exata de etapas:
+### 8.1. Contrato Tauri IPC (Desktop)
 
-1. **Etapa 1 — Scaffolding e Dependências:**
-* Inicializar projeto Tauri v2 com template React + TypeScript + Vite.
-* Configurar Tailwind CSS no frontend.
-* Adicionar `rusqlite = { version = "0.32", features = ["bundled"] }`, `chrono = { version = "0.4", features = ["serde"] }` e `serde` no `Cargo.toml`.
+```rust
+#[tauri::command]
+fn get_session_snapshot(state: State<Mutex<AppState>>) -> Result<SessionSnapshot, String>;
 
+#[tauri::command]
+fn start_or_switch_modality(
+    state: State<Mutex<AppState>>,
+    modality: Modality,
+    subject: String,
+    topic: String,
+) -> Result<SessionSnapshot, String>;
 
-2. **Etapa 2 — Camada de Banco de Dados (`db.rs`):**
-* Implementar criação da tabela `study_sessions`, rotina de *Crash Recovery* na inicialização e funções de inserção, atualização e busca do histórico do dia e matérias únicas.
+#[tauri::command]
+fn toggle_pause(state: State<Mutex<AppState>>) -> Result<SessionSnapshot, String>;
 
+#[tauri::command]
+fn update_session_metadata(
+    state: State<Mutex<AppState>>,
+    subject: String,
+    topic: String,
+) -> Result<(), String>;
 
-3. **Etapa 3 — Domínio e Máquina de Estados (`domain.rs` e `timer.rs`):**
-* Implementar `Modality`, `TrackerState` e `ActiveSession` usando `Instant` e `Duration`.
-* Escrever testes unitários em Rust (`#[cfg(test)]`) validando a transição entre modalidades e a soma correta dos tempos.
+#[tauri::command]
+fn stop_session(state: State<Mutex<AppState>>) -> Result<DailySummary, String>;
 
+#[tauri::command]
+fn get_initial_data(state: State<Mutex<AppState>>) -> Result<InitialData, String>;
 
-4. **Etapa 4 — Comandos Tauri e Interceptação de Janela (`commands.rs` e `lib.rs`):**
-* Expor os comandos IPC com estado protegido por `Mutex`.
-* Configurar `on_window_event` para bloquear `CloseRequested` quando a sessão estiver ativa e emitir o evento para o frontend.
+#[tauri::command]
+fn get_history_data(state: State<Mutex<AppState>>) -> Result<HistoryData, String>;
 
+#[tauri::command]
+fn update_history_session(
+    state: State<Mutex<AppState>>,
+    id: i64,
+    subject: String,
+    topic: String,
+) -> Result<(), String>;
 
-5. **Etapa 5 — Interface React + Integração IPC (`src/`):**
-* Criar contratos em `src/types/session.ts` e serviços em `src/services/tauriApi.ts`.
-* Construir os componentes visuais, o loop de *polling* de `200ms` para atualização fluida do relógio e o modal de confirmação de fechamento.
+#[tauri::command]
+fn delete_history_session(state: State<Mutex<AppState>>, id: i64) -> Result<(), String>;
+
+#[tauri::command]
+fn confirm_close_and_exit(app_handle: AppHandle) -> Result<(), String>;
+```
+
+### 8.2. Contrato de Abstração Unificada (`tauriApi.ts`)
+
+A camada `tauriApi.ts` detecta dinamicamente a presença do contêiner desktop via `isTauri()`. Se presente, despacha para `invoke()`; caso contrário, delega transparentemente para o `webTracker.ts`, mantendo a mesma assinatura assíncrona:
+
+```typescript
+export function isTauri(): boolean;
+export async function getInitialData(): Promise<InitialData>;
+export async function getSessionSnapshot(): Promise<SessionSnapshot>;
+export async function startOrSwitchModality(modality: Modality, subject: string, topic: string): Promise<SessionSnapshot>;
+export async function togglePause(): Promise<SessionSnapshot>;
+export async function updateSessionMetadata(subject: string, topic: string): Promise<void>;
+export async function stopSession(): Promise<DailySummary>;
+export async function getHistoryData(): Promise<HistoryData>;
+export async function updateHistorySession(id: number, subject: string, topic: string): Promise<void>;
+export async function deleteHistorySession(id: number): Promise<void>;
+```
+
+---
+
+## 9. Estratégia de Testes e Garantia de Qualidade
+
+A integridade do sistema é garantida por três camadas de testes automatizados:
+
+1. **Testes Unitários de Domínio (`tests/frontend.test.mts`):**
+   - Validação da precisão do WebTracker contra deriva temporal (*zero-drift*).
+   - Formatação dos décimos discretos (`.0` a `.9`) no relógio principal sem truncamentos indevidos.
+   - Rotina de recuperação de sessões interrompidas (`RECOVERED`).
+   - Exportação, validação e importação de backups JSON.
+   - Respeito à paleta monocromática e sistema de três fontes.
+2. **Testes de Usabilidade e Responsividade Móvel (`tests/responsive-usability.test.mts`):**
+   - Comportamento da barra superior fixa móvel e posicionamento da marca.
+   - Barra de navegação inferior fixa para dispositivos móveis com padding de segurança.
+   - Ancoragem adaptativa do `UserMenuPopover` sem corte na viewport.
+3. **Testes Ponta-a-Ponta E2E (`tests/e2e-binary.test.mts`):**
+   - Execução do binário compilado nativo desktop.
+   - Conexão e automação via Chrome DevTools Protocol (CDP) sobre o WebView2 nativo.
+   - Validação dos fluxos completos de início, troca de modalidade, pausa, finalização e integridade do banco SQLite.
